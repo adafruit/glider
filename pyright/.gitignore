@@ -1,0 +1,12 @@
+# Dependency directories
+node_modules
+
+# Optional npm cache directory
+.npm
+
+# Output files
+dist
+server/out/
+client/out/
+client/server/
+client/*.vsix

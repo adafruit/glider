@@ -1,0 +1,64 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Pyright CLI",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceRoot}/index.debug.js",
+      "protocol": "inspector",
+      "cwd": "${workspaceRoot}",
+      "preLaunchTask": "npm: build:analyzer",
+      "args": [
+        "-p",
+        "${workspaceRoot}/../brain",
+        "--stats"
+      ],
+      "internalConsoleOptions": "openOnSessionStart",
+      "outFiles": [
+        "${workspaceRoot}/client/server/**/*.js"
+      ]
+    },
+    {
+      "name": "Pyright Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceRoot}/server/node_modules/jest/bin/jest.js",
+      "protocol": "inspector",
+      "cwd": "${workspaceRoot}/server",
+      "args": [
+        "--config",
+        "${workspaceRoot}/server/jest.config.js",
+        "-runInBand"
+      ],
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": "Pyright Language Client",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${workspaceRoot}/client/out/src/extension.js",
+      "preLaunchTask": "npm: build:clientServer",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/client"
+      ],
+      "stopOnEntry": false,
+      "smartStep": true,
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/server/out/**/*.js"
+      ]
+    },
+    {
+      "name": "Pyright Language Server",
+      "type": "node",
+      "request": "attach",
+      "protocol": "inspector",
+      "port": 6600,
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/server/out/**/*.js"
+      ]
+    }
+  ]
+}

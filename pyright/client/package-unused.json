@@ -1,0 +1,114 @@
+{
+    "name": "pyright",
+    "displayName": "Pyright",
+    "description": "VS Code static type checking for Python",
+    "version": "1.0.63",
+    "license": "MIT",
+    "author": {
+        "name": "Microsoft Corporation"
+    },
+    "publisher": "ms-pyright",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Microsoft/pyright"
+    },
+    "engines": {
+        "vscode": "^1.26.0"
+    },
+    "keywords": [
+        "python"
+    ],
+    "categories": [
+        "Programming Languages"
+    ],
+    "activationEvents": [
+        "onLanguage:python",
+        "workspaceContains:**/pyrightconfig.json"
+    ],
+    "icon": "images/pyright-icon.png",
+    "main": "./out/src/extension",
+    "contributes": {
+        "languages": [
+            {
+                "id": "python",
+                "aliases": [
+                    "Python"
+                ],
+                "extensions": [
+                    ".py",
+                    ".pyi"
+                ]
+            }
+        ],
+        "commands": [
+            {
+                "command": "pyright.organizeimports",
+                "title": "Organize Imports",
+                "category": "Pyright"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "command": "pyright.organizeimports",
+                    "title": "Pyright: Organize Imports",
+                    "group": "Pyright",
+                    "when": "editorLangId == python"
+                }
+            ]
+        },
+        "configuration": {
+            "type": "object",
+            "title": "Pyright Configuration",
+            "properties": {
+                "python.analysis.typeshedPaths": {
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Paths to look for typeshed modules.",
+                    "scope": "resource"
+                },
+                "python.pythonPath": {
+                    "type": "string",
+                    "default": "python",
+                    "description": "Path to Python, you can use a custom version of Python.",
+                    "scope": "resource"
+                },
+                "python.venvPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to folder with a list of Virtual Environments.",
+                    "scope": "resource"
+                },
+                "pyright.disableLanguageServices": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Disables type completion, definitions, and references.",
+                    "scope": "resource"
+                }
+            }
+        },
+        "jsonValidation": [
+            {
+                "fileMatch": "pyrightconfig.json",
+                "url": "./schemas/pyrightconfig.schema.json"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run build",
+        "build": "tsc -p ./",
+        "update-vscode": "node ./node_modules/vscode/bin/install",
+        "postinstall": "node ./node_modules/vscode/bin/install"
+    },
+    "devDependencies": {
+        "typescript": "^3.6.2",
+        "vsce": "^1.64.0",
+        "vscode": "^1.1.35"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^5.3.0-next.6"
+    }
+}
