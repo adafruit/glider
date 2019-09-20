@@ -67,7 +67,7 @@ export default function App() {
       if (state.timer > -1) {
         clearTimeout(state.timer);
       }
-      let newState = {timer:-1, code:state.code};
+      let newState = {timer:-1, code:state.code, version: state.version + 1};
       if (action.type == "clear") {
         newState.code = "";
       } if (action.type == "read") {
@@ -77,9 +77,10 @@ export default function App() {
           newState.code = action.data;
           newState.timer = setTimeout(triggerSaveCodeToDevice, 500, newState.code);
       }
+
       return newState;
     }
-    const [code, changeCode] = useReducer(codeReducer, {timer:-1, code:""});
+    const [code, changeCode] = useReducer(codeReducer, {timer:-1, code:"", version:0});
 
     useEffect(() => {
         if (currentAppState === 'active') {
@@ -247,7 +248,7 @@ export default function App() {
         isInverseDirection={true}
         bgColor="red"
         initialDrawerSize={17}
-        renderContainerView={() => (<View><StatusSummary bleState={bleState} /><CodeEditor code={code.code} changeCode={changeCode} fileState={fileState}/></View>)}
+        renderContainerView={() => (<View><StatusSummary bleState={bleState} /><CodeEditor code={code.code} changeCode={changeCode} fileState={fileState} fileName="/code.py" fileVersion={code.version}/></View>)}
         renderDrawerView={() => (<Status bleState={bleState} peripherals={peripherals} setPeripheral={setPeripheral} />)}
         renderInitDrawerView={() => (<StatusSummary bleState={bleState} />)}
       />);
