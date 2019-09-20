@@ -2,6 +2,10 @@
 import React from 'react';
 import {ActivityIndicator, Platform, TextInput, KeyboardAvoidingView} from 'react-native';
 
+import {AnalyzerService} from './pyright/server/src/analyzer/service';
+
+const analyzer = new AnalyzerService("");
+
 export default function CodeEditor(props) {
     let editor;
     if (props.fileState == "loading") {

@@ -243,7 +243,6 @@ export default function App() {
         };
     }, []);
 
-    // return (<CodeEditor code={code} changeCode={changeCode} />);
     return (<DraggableView 
         isInverseDirection={true}
         bgColor="red"
