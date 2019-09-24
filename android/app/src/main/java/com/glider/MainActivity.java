@@ -1,4 +1,4 @@
-package com.kaa;
+package com.glider;
 
 import com.facebook.react.ReactActivity;
 

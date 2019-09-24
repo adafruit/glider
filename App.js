@@ -10,6 +10,8 @@ import { stringToBytes, bytesToString } from 'convert-string';
 import {
     NativeEventEmitter,
     NativeModules,
+    PermissionsAndroid,
+    Platform,
     View
 } from 'react-native';
 
@@ -20,11 +22,11 @@ const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 function peripheralReducer(state, action) {
     if (action.action == "add") {
         let peripheral = action.peripheral;
-        //console.log(peripheral);
+        console.log(peripheral);
         if (state.has(peripheral.id)) {
             return state; // No state change
         }
-        if (!peripheral.advertising.serviceUUIDs || peripheral.advertising.serviceUUIDs[0].toLowerCase() != 'adaf0100-4369-7263-7569-74507974686e') {
+        if (!peripheral.advertising.serviceUUIDs || peripheral.advertising.serviceUUIDs.length == 0 || peripheral.advertising.serviceUUIDs[0].toLowerCase() != 'adaf0100-4369-7263-7569-74507974686e') {
             return state;
         }
         console.log(peripheral);
@@ -32,7 +34,7 @@ function peripheralReducer(state, action) {
         newMap.set(peripheral.id, peripheral);
         return newMap;
     } else if (action.action == "scan") {
-        BleManager.scan([], 3, true).then((results) => {
+        BleManager.scan([], 3).then((results) => {
             console.log('Scanning...');
         });
     } else if (action.action == "clear") {
@@ -86,7 +88,10 @@ export default function App() {
         if (currentAppState === 'active') {
             console.log('App has come to the foreground!')
         } else {
-            BleManager.disconnect(peripheral.id);
+            if (peripheral) {
+              BleManager.disconnect(peripheral.id);
+            }
+
             setBleState("disconnected");
         }
     }, [currentAppState]);
@@ -104,6 +109,7 @@ export default function App() {
 
     const handleDiscoverPeripheral = (peripheral) => {
         //console.log('Got ble peripheral', peripheral);
+        peripheral.connected = false;
         changePeripherals({"action": "add", "peripheral": peripheral});
     }
 
@@ -191,10 +197,21 @@ export default function App() {
     useEffect(() => {
         console.log("new blestate", bleState);
         if (bleState == "permOk") {
+            changePeripherals({"action": "clear"});
             BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
+              for (p of peripheralsArray) {
+                console.log(p);
+                p.connected = true;
+                BleManager.connect(p.id).then(() => {
+                BleManager.retrieveServices(p.id).then((peripheralInfo) => {
+                  console.log(peripheralInfo);
+                  p.advertising.serviceUUIDs = [peripheralInfo.services[2].uuid];
+                  changePeripherals({"action": "add", "peripheral": p});
+                });
+              });
+              }
               console.log('Connected peripherals: ' + peripheralsArray.length);
             });
-            changePeripherals({"action": "clear"});
             changePeripherals({"action": "scan"});
         } else if (bleState == "disconnected") {
             // set a timeout and try to reconnect

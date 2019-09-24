@@ -1,30 +1,27 @@
 
 import React, { useState } from 'react';
-import {ActivityIndicator, FlatList, Platform, TextInput, KeyboardAvoidingView, Text, View} from 'react-native';
+import {ActivityIndicator, FlatList, Platform, TextInput, KeyboardAvoidingView, Text, View, StyleSheet} from 'react-native';
 
 import {AnalyzerService} from './pyright/server/src/analyzer/service';
 import {ArgumentCategory, ParseNodeType} from './pyright/server/src/parser/parseNodes';
 import {TokenType, KeywordType} from './pyright/server/src/parser/tokenizerTypes';
 
 const analyzer = new AnalyzerService("");
+const font = "monospace";
 
 function Code(props) {
-    let style = {fontFamily: "Menlo-Regular"};
-    if ("style" in props) {
-        props.style.fontFamily = "Menlo-Regular";
-        style = props.style;
-    }
-    return (<Text style={style} {...props}/>);
+    return (<Text {...props} style={[props.style, {fontFamily: font}]}/>);
 }
 
 function CodeInput(props) {
-    let style = {fontFamily: "Menlo-Regular"};
-    if ("style" in props) {
-        props.style.fontFamily = "Menlo-Regular";
-        style = props.style;
-    }
-    return (<TextInput style={style} {...props}/>);
+    return (<TextInput {...props} style={[props.style, {fontFamily: font, "borderColor": "red", "borderWidth": 2, paddingVertical: 0, textAlignVertical: 'top'}]} />);
 }
+
+const styles = StyleSheet.create({
+    keyword: {
+      color: 'blue',
+    },
+  });
 
 function Indent({amount, index, parent}) {
     let whitespace = "    ";
@@ -35,6 +32,7 @@ function renderKeyword(token, changeCode) {
     if (token.keywordType == KeywordType.True || token.keywordType == KeywordType.False) {
         let value = token.keywordType == KeywordType.True ? "True" : "False";
         return (<CodeInput placeholder="bool"
+                            style={styles.keyword}
                             editable={true}
                             multiline={false}>{value}</CodeInput>);
     }
@@ -76,10 +74,10 @@ function renderParseNode(node, changeCode) {
             
             break;
         case ParseNodeType.Constant:
-            return (<View style={{flexDirection: 'row'}}>{renderToken(node.token, changeCode)}</View>);
+            return (<View style={{flex: 0, flexDirection: 'row'}}>{renderToken(node.token, changeCode)}</View>);
         case ParseNodeType.Import:
             if (node.list.length == 1) {
-                return (<View style={{flexDirection: 'row'}}><Code style={{fontFamily: 'Menlo-Regular'}}>import </Code>{renderParseNode(node.list[0], changeCode)}</View>);
+                return (<View style={{flex: 0, flexDirection: 'row'}}><Code style={{fontFamily: 'Menlo-Regular'}}>import </Code>{renderParseNode(node.list[0], changeCode)}</View>);
             }
             
             break;
