@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "@types/jest": "^24.0.18",
-    "@types/node": "^12.7.5",
-    "@types/react": "^16.9.2",
-    "@types/react-dom": "^16.9.0",
+    "@types/node": "^12.7.7",
+    "@types/react": "^16.9.3",
+    "@types/react-dom": "^16.9.1",
     "assert": "^2.0.0",
     "convert-string": "^0.1.0",
     "path": "^0.12.7",
@@ -23,8 +23,8 @@
     "typescript": "^3.6.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.0",
-    "@babel/runtime": "^7.6.0",
+    "@babel/core": "^7.6.2",
+    "@babel/runtime": "^7.6.2",
     "@react-native-community/eslint-config": "^0.0.5",
     "babel-jest": "^24.9.0",
     "babel-plugin-const-enum": "0.0.2",
