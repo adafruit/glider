@@ -1,20 +1,52 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {ActivityIndicator, FlatList, Platform, TextInput, KeyboardAvoidingView, Text, View, StyleSheet} from 'react-native';
 
 import {AnalyzerService} from './pyright/server/src/analyzer/service';
 import {ArgumentCategory, ParseNodeType} from './pyright/server/src/parser/parseNodes';
 import {TokenType, KeywordType} from './pyright/server/src/parser/tokenizerTypes';
 
+var firstAnalyzerRun = true;
 const analyzer = new AnalyzerService("");
-const font = "monospace";
+const font = Platform.OS === 'android' ? "monospace" : "Menlo-Regular";
 
 function Code(props) {
     return (<Text {...props} style={[props.style, {fontFamily: font}]}/>);
 }
 
 function CodeInput(props) {
-    return (<TextInput {...props} style={[props.style, {fontFamily: font, "borderColor": "red", "borderWidth": 2, paddingVertical: 0, textAlignVertical: 'top'}]} />);
+    let [oldValue, setOldValue] = useState(props.children);
+    let [newValue, setNewValue] = useState(props.children);
+    let [changeTimeout, setChangeTimeout] = useState(0);
+    let debugStyle = {};
+    if (Platform.OS === 'android') {
+        debugStyle = {"borderColor": "red", "borderWidth": 2};
+    }
+    function patch(offset, oldValue, newValue) {
+        setChangeTimeout(0);
+        setOldValue(newValue);
+        console.log(performance.now(), "patch", offset, oldValue, newValue);
+        props.changeCode({"type": "patch", "offset": offset, "oldValue": oldValue, "newValue": newValue});
+    }
+    function onChange(newText) {
+        setNewValue(newText);
+        if (changeTimeout > 0) {
+            clearTimeout(changeTimeout);
+        }
+        let timeout = setTimeout(patch, 1000, props.offset, oldValue, newText);
+        setChangeTimeout(timeout);
+    }
+    function onDone() {
+        if (changeTimeout > 0) {
+            clearTimeout(changeTimeout);
+            setChangeTimeout(0);
+        }
+        if (oldValue != newValue) {
+            console.log("done");
+            patch(props.offset, oldValue, newValue);
+        }
+    }
+    return (<TextInput {...props} style={[props.style, {fontFamily: font, paddingVertical: 0, textAlignVertical: 'top'}, debugStyle]} onChangeText={onChange} onEndEditing={onDone}>{newValue}</TextInput>);
 }
 
 const styles = StyleSheet.create({
@@ -103,7 +135,6 @@ function renderParseNode(node, changeCode) {
                 
                 break;
         case ParseNodeType.Name: {
-                console.log(node);
                 return (<CodeInput placeholder="module"
                                     editable={true}
                                     multiline={false}
@@ -112,13 +143,18 @@ function renderParseNode(node, changeCode) {
                 break;
         }
         case ParseNodeType.Number: {
-                console.log("number", node.token.value, node);
+                let keyboardType = "decimal-pad";
+                let value = node.token.stringValue;
+                if (node.token.radix == 16) {
+                    keyboardType = "default";
+                }
                 return (<CodeInput placeholder="number"
                                     editable={true}
                                     multiline={false}
-                                    keyboardType="decimal-pad"
-                                    //onChangeText={ (newText) => props.changeCode({"type": "replaceAll", "data": newText })}
-                                    >{node.token.value}</CodeInput>);
+                                    keyboardType={keyboardType}
+                                    changeCode={changeCode}
+                                    offset={node.start}
+                                    >{value}</CodeInput>);
                 break;
         }
         case ParseNodeType.ModuleName: {
@@ -144,7 +180,6 @@ function renderParseNode(node, changeCode) {
 
 
 function CodeLine(props) {
-    console.log(props.line);
     let parseNode = props.line[1];
     let code;
     if (parseNode == "empty") {
@@ -162,12 +197,20 @@ function CodeLine(props) {
 
 export default function CodeEditor(props) {
     const [lines, setLines] = useState([]);
+    const [unparsable, setUnparsable] = useState(false);
 
     function analysisComplete(results) {
         if (!results) {
             return;
         }
         console.log(results);
+        if (results.fatalErrorOccurred) {
+            setUnparsable(true);
+            return;
+        } else {
+            setUnparsable(false);
+        }
+
         let diagnostics = results.diagnostics[0];
         let lineRanges = diagnostics.parseResults.lines._items;
         let lines = new Array();
@@ -197,7 +240,6 @@ export default function CodeEditor(props) {
                 }
                 indent = newIndent;
             }
-            console.log(indents, line, statements);
             let parseNode = statements.shift();
             if (!parseNode) {
                 console.log(line, parseNode);
@@ -207,8 +249,6 @@ export default function CodeEditor(props) {
                 if (parseNode.nodeType == 57) { // while loop
                     lines.push([Array.from(indents), parseNode]);
                     statements.unshift("pushscope", ...parseNode.whileSuite.statements, "popscope");
-                } else {
-                    console.log(line, parseNode);
                 }
             }
         }
@@ -216,16 +256,31 @@ export default function CodeEditor(props) {
         console.log(lines);
         setLines(lines);
     };
-    analyzer.setCompletionCallback(analysisComplete);
-    analyzer.setFileOpened(props.fileName, props.fileVersion, props.code);
+    useEffect(() => {
+        analyzer.setCompletionCallback(analysisComplete);
+
+        console.log("file updated", props.fileName, props.fileVersion, props.code);
+        if (firstAnalyzerRun) {
+            analyzer.setFileOpened(props.fileName, props.fileVersion, props.code);
+            firstAnalyzerRun = false;
+        } else {
+            analyzer.updateOpenFileContents(props.fileName, props.fileVersion, props.code);
+        }
+    }, [props.fileName, props.fileVersion, props.code]);
+    
     let editor;
     if (props.fileState == "loading") {
         editor = (<ActivityIndicator size="large" color="#00ff00" />);
     } else if (props.fileState == "loaded") {
-        editor = (<FlatList
-                    data={lines}
-                    renderItem={({item}) => <CodeLine line={item}/>}
-                />);
+        // Fallback to multiline text editor if the source is unparseable.
+        if (unparsable) {
+            editor = <CodeInput multiline={true} offset={0}>{props.code}</CodeInput>;
+        } else {
+            editor = (<FlatList
+                                data={lines}
+                                renderItem={({item}) => <CodeLine line={item} changeCode={props.changeCode}/>}
+                            />);
+        }
     }
     return (<KeyboardAvoidingView behavior="padding" enabled>
                 {editor}

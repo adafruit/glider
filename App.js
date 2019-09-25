@@ -49,6 +49,56 @@ const filenameCharacteristic = 'adaf0200-4369-7263-7569-74507974686e';
 const versionCharacteristic = 'adaf0203-4369-7263-7569-74507974686e';
 const lengthCharacteristic = 'adaf0202-4369-7263-7569-74507974686e';
 
+function codeReducer(state, action) {
+  let newState = {code: state.code, peripheral_id: state.peripheral_id, queue: state.queue, version: state.version + 1};
+  if (action.type == "clear") {
+    newState.code = "";
+  } else if (action.type == "connect") {
+    newState.peripheral_id = action.peripheral_id;
+    if (state.queue && state.queue.length > 0) {
+      console.log("missed patches", state.queue);
+    }
+  } else if (action.type == "disconnect") {
+    newState.peripheral_id = null;
+    newState.queue = new Array();
+  } else if (action.type == "read") {
+      newState.code += action.data;
+  } else if (action.type == "patch") {
+    console.log("TODO send data back to CP");
+    console.log(state, action);
+    let encoder = new TextEncoder();
+    let encodedInsert = encoder.encode(action.newValue);
+    let totalLength = 2 + 2 + 4 + 4 + 4 + encodedInsert.length
+    let patch = new ArrayBuffer(totalLength);
+    let view = new DataView(patch);
+    view.setUint16(0, totalLength, true);
+    view.setUint16(2, 2, true);
+    view.setUint32(4, action.offset, true);
+    view.setUint32(8, action.oldValue.length, true);
+    view.setUint32(12, encodedInsert.length, true);
+    let byteView = new Uint8Array(patch, 16, encodedInsert.length);
+    byteView.set(encodedInsert);
+
+    // React native bridging can't handle Uint8Array so copy into a normal array.
+    finalPatch = Array.from(new Uint8Array(patch));
+    if (state.peripheral_id) {
+      console.log("writing patch", finalPatch, patch);
+      BleManager.write(state.peripheral_id, service, contentsCharacteristic, finalPatch).then(() => {
+        console.log('Wrote patch to device');
+      });
+    } else {
+      console.log("no peripheral", newState.queue);
+      newState.queue.push(patch);
+    }
+    
+    console.log("merging together", action, state.code);
+    newState.code = state.code.substring(0, action.offset) + action.newValue + state.code.substring(action.offset + action.oldValue.length, state.code.length);
+  }
+
+  console.log("new code state", newState);
+  return newState;
+}
+
 export default function App() {
     const currentAppState = useAppState();
     const [bleState, setBleState] = useState("stopped");
@@ -57,38 +107,14 @@ export default function App() {
     const [fileState, setFileState] = useState("unloaded");
     const [fileLength, setFileLength] = useState(-1);
 
-    function saveCodeToDevice(code) {
-      console.log("save", code);
-    }
-
-    function triggerSaveCodeToDevice(code) {
-      console.log("save", code);
-    }
-
-    function codeReducer(state, action) {
-      if (state.timer > -1) {
-        clearTimeout(state.timer);
-      }
-      let newState = {timer:-1, code:state.code, version: state.version + 1};
-      if (action.type == "clear") {
-        newState.code = "";
-      } if (action.type == "read") {
-          newState.code += action.data;
-      } else if (action.type == "replaceAll") {
-          console.log("TODO send data back to CP");
-          newState.code = action.data;
-          newState.timer = setTimeout(triggerSaveCodeToDevice, 500, newState.code);
-      }
-
-      return newState;
-    }
-    const [code, changeCode] = useReducer(codeReducer, {timer:-1, code:"", version:0});
+    const [code, changeCode] = useReducer(codeReducer, {code:"", version:0, peripheral_id: null});
 
     useEffect(() => {
         if (currentAppState === 'active') {
             console.log('App has come to the foreground!')
         } else {
             if (peripheral) {
+              changeCode({"type": "disconnect", "peripheral_id": peripheral.id});
               BleManager.disconnect(peripheral.id);
             }
 
@@ -128,6 +154,7 @@ export default function App() {
       console.log("handle connect to", peripheral);
       BleManager.connect(peripheral.id).then(() => {
         setBleState("connected");
+        changeCode({"type": "connect", "peripheral_id": peripheral.id});
         setTimeout(() => {
 
           BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
@@ -170,8 +197,10 @@ export default function App() {
 
           }, 500);
         } else if (fileState == "loading") {
-          let command = new Array(1);
-          command[0] = 1;
+          let command = new Array(4);
+          command.fill(0);
+          command[0] = 4;
+          command[2] = 1;
           setTimeout(() => {
             BleManager.write(peripheral.id, service, contentsCharacteristic, command)
                       .catch((error) => {
