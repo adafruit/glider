@@ -1,4 +1,4 @@
-# :snake: Glider
+![Glider word logo](logo.png)
 
 Glider is a portable mobile app aimed at making wireless editing of Python code really easy and fun.
 
