@@ -80,7 +80,7 @@ function codeReducer(state, action) {
     byteView.set(encodedInsert);
 
     // React native bridging can't handle Uint8Array so copy into a normal array.
-    finalPatch = Array.from(new Uint8Array(patch));
+    let finalPatch = Array.from(new Uint8Array(patch));
     if (state.peripheral_id) {
       console.log("writing patch", finalPatch, patch);
       BleManager.write(state.peripheral_id, service, contentsCharacteristic, finalPatch).then(() => {
@@ -111,7 +111,9 @@ export default function App() {
 
     useEffect(() => {
         if (currentAppState === 'active') {
-            console.log('App has come to the foreground!')
+          console.log('App has come to the foreground!', bleState);
+          BleManager.start({showAlert: true});
+          BleManager.checkState();
         } else {
             if (peripheral) {
               changeCode({"type": "disconnect", "peripheral_id": peripheral.id});
@@ -127,6 +129,14 @@ export default function App() {
         console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, bytesToString(data.value));
         changeCode({"type": "read", "data": bytesToString(data.value)});
     }
+
+    const handleUpdateState = (data) => {
+      console.log("update state", data);
+      if (data.state == "on") {
+        console.log("started");
+        setBleState("started");
+      }
+  }
 
     const handleStopScan = () => {
         console.log('Scan is stopped');
@@ -226,6 +236,7 @@ export default function App() {
     useEffect(() => {
         console.log("new blestate", bleState);
         if (bleState == "permOk") {
+        } else if (bleState == "started") {
             changePeripherals({"action": "clear"});
             BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
               for (p of peripheralsArray) {
@@ -255,13 +266,11 @@ export default function App() {
       }, [bleState]);
 
     useEffect(() => {
-        BleManager.start({showAlert: false});
-        setBleState("started");
-
-        this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', handleDiscoverPeripheral );
-        this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', handleStopScan );
-        this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral );
-        this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic );
+        const handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', handleDiscoverPeripheral );
+        const handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', handleStopScan );
+        const handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral );
+        const handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic );
+        const handlerUpdateState = bleManagerEmitter.addListener('BleManagerDidUpdateState', handleUpdateState);
 
         if (Platform.OS === 'android' && Platform.Version >= 23) {
             setBleState("permCheck");
@@ -283,10 +292,11 @@ export default function App() {
         }
 
         return () => {
-            this.handlerDiscover.remove();
-            this.handlerStop.remove();
-            this.handlerDisconnect.remove();
-            this.handlerUpdate.remove();
+            handlerDiscover.remove();
+            handlerStop.remove();
+            handlerDisconnect.remove();
+            handlerUpdate.remove();
+            handlerUpdateState.remove();
         };
     }, []);
 

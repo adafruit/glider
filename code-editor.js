@@ -33,8 +33,10 @@ function CodeInput(props) {
         if (changeTimeout > 0) {
             clearTimeout(changeTimeout);
         }
-        let timeout = setTimeout(patch, 1000, props.offset, oldValue, newText);
-        setChangeTimeout(timeout);
+        if (newText.length > 0) {
+            let timeout = setTimeout(patch, 1000, props.offset, oldValue, newText);
+            setChangeTimeout(timeout);
+        }
     }
     function onDone() {
         if (changeTimeout > 0) {
@@ -43,7 +45,9 @@ function CodeInput(props) {
         }
         if (oldValue != newValue) {
             console.log("done");
-            patch(props.offset, oldValue, newValue);
+            if (newValue.length > 0) {
+                patch(props.offset, oldValue, newValue);
+            }
         }
     }
     return (<TextInput {...props} style={[props.style, {fontFamily: font, paddingVertical: 0, textAlignVertical: 'top'}, debugStyle]} onChangeText={onChange} onEndEditing={onDone}>{newValue}</TextInput>);
@@ -93,9 +97,12 @@ function renderParseNode(node, changeCode) {
         case ParseNodeType.Assignment:
             return (<View style={{flex: 1, flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code> = </Code>{renderParseNode(node.rightExpression, changeCode)}</View>);
             break;
+        case ParseNodeType.BinaryOperation:
+            return (<View style={{flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code> ?? </Code>{renderParseNode(node.rightExpression, changeCode)}</View>);
+            break;
         case ParseNodeType.Call:{
             var a = [];
-            for (argument of node.arguments) {
+            for (var argument of node.arguments) {
                 if (a.length > 0) {
                     a.push(<Code key={a.length}>, </Code>);
                 }
@@ -107,9 +114,13 @@ function renderParseNode(node, changeCode) {
             break;
         case ParseNodeType.Constant:
             return (<View style={{flex: 0, flexDirection: 'row'}}>{renderToken(node.token, changeCode)}</View>);
+        case ParseNodeType.Function:
+            return (<View style={{flexDirection: 'row'}}><Code>def </Code>{renderParseNode(node.name, changeCode)}<Code>(</Code>{renderParseNode(node.parameters[0], changeCode)}<Code>):</Code></View>);
+        case ParseNodeType.If:
+            return (<View style={{flexDirection: 'row'}}><Code>if </Code>{renderParseNode(node.testExpression, changeCode)}<Code>:</Code></View>);
         case ParseNodeType.Import:
             if (node.list.length == 1) {
-                return (<View style={{flex: 0, flexDirection: 'row'}}><Code style={{fontFamily: 'Menlo-Regular'}}>import </Code>{renderParseNode(node.list[0], changeCode)}</View>);
+                return (<View style={{flex: 0, flexDirection: 'row'}}><Code>import </Code>{renderParseNode(node.list[0], changeCode)}</View>);
             }
             
             break;
@@ -157,6 +168,8 @@ function renderParseNode(node, changeCode) {
                                     >{value}</CodeInput>);
                 break;
         }
+        case ParseNodeType.Parameter:
+            return renderParseNode(node.name, changeCode);
         case ParseNodeType.ModuleName: {
                 if (node.leadingDots == 0 && node.nameParts.length == 1) {
                     return renderParseNode(node.nameParts[0], changeCode);
@@ -180,7 +193,8 @@ function renderParseNode(node, changeCode) {
 
 
 function CodeLine(props) {
-    let parseNode = props.line[1];
+    let parseNode = props.line.node;
+    console.log(props.line);
     let code;
     if (parseNode == "empty") {
         code = (<CodeInput placeholder="pass"
@@ -191,7 +205,7 @@ function CodeLine(props) {
     } else {
         code = renderParseNode(parseNode, props.changeCode);
     }
-    let indents = props.line[0].flatMap((value, index) => (<Indent amount={value[0]} index={index} key={index} parent={value[1]}/>));
+    let indents = props.line.indents.flatMap((value, index) => (<Indent amount={value[0]} index={index} key={index} parent={value[1]}/>));
     return (<View style={{flex: 1, flexDirection: 'row'}}>{indents}{code}</View>);
 };
 
@@ -214,22 +228,31 @@ export default function CodeEditor(props) {
         let diagnostics = results.diagnostics[0];
         let lineRanges = diagnostics.parseResults.lines._items;
         let lines = new Array();
+        let comments = new Array();
+        for (var token of diagnostics.parseResults.tokens._items) {
+            if (token.comments) {
+                comments.push(...token.comments);
+            }
+        }
         let statements = [];
         statements.push(...diagnostics.parseResults.parseTree.statements);
         let indent = 0;
         let indents = [];
+        let emptyCount = 0;
         for (line of lineRanges) {
             if (line.length == 1) {
-                lines.push([Array.from(indents), "empty"]);
+                lines.push({indents: Array.from(indents), node: "empty", id: "empty" + emptyCount});
+                emptyCount += 1;
                 continue;
             }
             if (statements[0] == "popscope" || statements[0] == "pushscope") {
                 let scope = statements.shift();
                 if (scope == "popscope" && line.length != indent) {
-                    lines.push("empty");
+                    lines.push({indents: Array.from(indents), node: "empty", id: "empty" + emptyCount});
+                    emptyCount += 1;
                 }
                 // recompute indent
-                newIndent = statements[0].start - line.start;
+                let newIndent = statements[0].start - line.start;
                 if (scope == "pushscope") {
                     // Include the last parse node so the empty space know what it belongs to
                     console.log(lines, lines.length);
@@ -243,12 +266,24 @@ export default function CodeEditor(props) {
             let parseNode = statements.shift();
             if (!parseNode) {
                 console.log(line, parseNode);
-            } else if (parseNode && parseNode.start == line.start + indent && parseNode.length == line.length - 1 - indent) {
-                lines.push([Array.from(indents), parseNode]);
+            } else if (parseNode &&
+                       parseNode.start == line.start + indent &&
+                       (parseNode.length == line.length - 1 - indent ||
+                        parseNode.length == line.length - indent)) {
+                lines.push({indents: Array.from(indents), node: parseNode, id: parseNode.start.toString()});
             } else {
-                if (parseNode.nodeType == 57) { // while loop
-                    lines.push([Array.from(indents), parseNode]);
+                if (parseNode.nodeType == ParseNodeType.If) { // if statement
+                    lines.push({indents: Array.from(indents), node: parseNode, id: parseNode.start.toString()});
+                    statements.unshift("pushscope", ...parseNode.ifSuite.statements, "popscope");
+                    // handle an else suite
+                } else if (parseNode.nodeType == ParseNodeType.While) { // while loop
+                    lines.push({indents: Array.from(indents), node: parseNode, id: parseNode.start.toString()});
                     statements.unshift("pushscope", ...parseNode.whileSuite.statements, "popscope");
+                } else if (parseNode.nodeType == ParseNodeType.Function) { // function def
+                    lines.push({indents: Array.from(indents), node: parseNode, id: parseNode.start.toString()});
+                    statements.unshift("pushscope", ...parseNode.suite.statements, "popscope");
+                } else {
+                    console.log("unhandled node", parseNode, line, indent);
                 }
             }
         }
