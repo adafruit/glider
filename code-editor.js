@@ -148,7 +148,7 @@ function renderParseNode(node, changeCode) {
         case ParseNodeType.Name: {
                 return (<CodeInput placeholder="module"
                                     editable={true}
-                                    multiline={false}
+                                    multiline={true}
                                     //onChangeText={ (newText) => props.changeCode({"type": "replaceAll", "data": newText })}
                                     >{node.nameToken.value}</CodeInput>);
                 break;
@@ -161,7 +161,7 @@ function renderParseNode(node, changeCode) {
                 }
                 return (<CodeInput placeholder="number"
                                     editable={true}
-                                    multiline={false}
+                                    multiline={true}
                                     keyboardType={keyboardType}
                                     changeCode={changeCode}
                                     offset={node.start}
