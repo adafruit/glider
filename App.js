@@ -1,6 +1,8 @@
 
 import React, { useReducer, useState, useEffect } from 'react';
-
+import 'react-native-gesture-handler';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { AppearanceProvider, useColorScheme} from 'react-native-appearance';
 import DraggableView from './draggable-view';
 import CodeEditor from './code-editor';
 import Status, { StatusSummary} from './status';
@@ -19,6 +21,7 @@ import {
 import BleManager from 'react-native-ble-manager';
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+
 
 function peripheralReducer(state, action) {
     if (action.action == "add") {
@@ -101,6 +104,7 @@ function codeReducer(state, action) {
 }
 
 export default function App() {
+    const scheme = useColorScheme();
     const currentAppState = useAppState();
     const [bleState, setBleState] = useState("stopped");
     const [peripherals, changePeripherals] = useReducer(peripheralReducer, new Map());
@@ -145,7 +149,7 @@ export default function App() {
     }
 
     const handleDiscoverPeripheral = (peripheral) => {
-        //console.log('Got ble peripheral', peripheral);
+        console.log('Got ble peripheral', peripheral);
         peripheral.connected = false;
         changePeripherals({"action": "add", "peripheral": peripheral});
     }
@@ -302,10 +306,11 @@ export default function App() {
     }, []);
 
     return (
+      <AppearanceProvider><NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
       <SafeAreaView style={{flex:1}}>
       <DraggableView
         isInverseDirection={true}
-        bgColor="red"
+        bgColor={scheme === 'light' ? 'white' : 'rgb(18,18,18)'}
         initialDrawerSize={17}
         renderContainerView={() => (<View><StatusSummary bleState={bleState} /><CodeEditor code={code.code} changeCode={changeCode} fileState={fileState} fileName="/code.py" fileVersion={code.version}/></View>)}
         renderDrawerView={() => (<Status bleState={bleState} peripherals={peripherals} setPeripheral={setPeripheral} />)}
@@ -313,6 +318,9 @@ export default function App() {
           )}
       />
       </SafeAreaView>
+      </NavigationContainer></AppearanceProvider>
     );
 
 }
+       
+
