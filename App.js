@@ -12,7 +12,8 @@ import {
     NativeModules,
     PermissionsAndroid,
     Platform,
-    View
+    View,
+    SafeAreaView
 } from 'react-native';
 
 import BleManager from 'react-native-ble-manager';
@@ -90,7 +91,7 @@ function codeReducer(state, action) {
       console.log("no peripheral", newState.queue);
       newState.queue.push(patch);
     }
-    
+
     console.log("merging together", action, state.code);
     newState.code = state.code.substring(0, action.offset) + action.newValue + state.code.substring(action.offset + action.oldValue.length, state.code.length);
   }
@@ -192,7 +193,7 @@ export default function App() {
         console.log('Connection error', error);
       });
     }
-  
+
     useEffect(() => {
         if (fileState == "nameSet") {
           // Load the file length and then load it all.
@@ -300,12 +301,18 @@ export default function App() {
         };
     }, []);
 
-    return (<DraggableView 
+    return (
+      <SafeAreaView style={{flex:1}}>
+      <DraggableView
         isInverseDirection={true}
         bgColor="red"
         initialDrawerSize={17}
         renderContainerView={() => (<View><StatusSummary bleState={bleState} /><CodeEditor code={code.code} changeCode={changeCode} fileState={fileState} fileName="/code.py" fileVersion={code.version}/></View>)}
         renderDrawerView={() => (<Status bleState={bleState} peripherals={peripherals} setPeripheral={setPeripheral} />)}
-        renderInitDrawerView={() => (<StatusSummary bleState={bleState} />)}
-      />);
+        renderInitDrawerView={() => (<StatusSummary bleState={bleState} />
+          )}
+      />
+      </SafeAreaView>
+    );
+
 }
