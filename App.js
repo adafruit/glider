@@ -307,7 +307,7 @@ export default function App() {
 
     return (
       <AppearanceProvider><NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <SafeAreaView style={{flex:1}}>
+      <SafeAreaView style={{flex:1, backgroundColor: scheme === 'light' ? 'white' : 'rgb(18,18,18)'}}>
       <DraggableView
         isInverseDirection={true}
         bgColor={scheme === 'light' ? 'white' : 'rgb(18,18,18)'}
