@@ -1,20 +1,23 @@
 
 import React, { useState, useEffect } from 'react';
 import {ActivityIndicator, FlatList, Platform, TextInput, KeyboardAvoidingView, Text, View, StyleSheet} from 'react-native';
-
 import {AnalyzerService} from './pyright/server/src/analyzer/service';
 import {ArgumentCategory, ParseNodeType} from './pyright/server/src/parser/parseNodes';
 import {TokenType, KeywordType} from './pyright/server/src/parser/tokenizerTypes';
+import { useTheme } from '@react-navigation/native';
 
 var firstAnalyzerRun = true;
 const analyzer = new AnalyzerService("");
 const font = Platform.OS === 'android' ? "monospace" : "Menlo-Regular";
 
+
 function Code(props) {
-    return (<Text {...props} style={[props.style, {fontFamily: font}]}/>);
+    const { colors } = useTheme();
+    return (<Text {...props} style={[props.style, {fontFamily: font},{ color: colors.text }]}/>);
 }
 
 function CodeInput(props) {
+    const { colors } = useTheme();
     let [oldValue, setOldValue] = useState(props.children);
     let [newValue, setNewValue] = useState(props.children);
     let [changeTimeout, setChangeTimeout] = useState(0);
@@ -61,7 +64,8 @@ const styles = StyleSheet.create({
 
 function Indent({amount, index, parent}) {
     let whitespace = "    ";
-    return (<Code style={index % 2 == 0 ? {backgroundColor: "white"} : {backgroundColor: "lightpink"}}>{whitespace}</Code>);
+    var { colors } = useTheme();
+    return (<Code style={index % 2 == 0 ? {backgroundColor: colors.card} : {backgroundColor: colors.card}}>{whitespace}</Code>);
 }
 
 function renderKeyword(token, changeCode) {
@@ -88,6 +92,7 @@ function renderToken(token, changeCode) {
 }
 
 function renderParseNode(node, changeCode) {
+    const { colors } = useTheme();
     switch (node.nodeType) {
         case ParseNodeType.Argument:
             if (node.argumentCategory == ArgumentCategory.Simple) {
@@ -149,6 +154,7 @@ function renderParseNode(node, changeCode) {
                 return (<CodeInput placeholder="module"
                                     editable={true}
                                     multiline={true}
+                                    style={{color: colors.text}}
                                     //onChangeText={ (newText) => props.changeCode({"type": "replaceAll", "data": newText })}
                                     >{node.nameToken.value}</CodeInput>);
                 break;
@@ -165,6 +171,7 @@ function renderParseNode(node, changeCode) {
                                     keyboardType={keyboardType}
                                     changeCode={changeCode}
                                     offset={node.start}
+                                    style={{color: colors.text}}
                                     >{value}</CodeInput>);
                 break;
         }
@@ -197,7 +204,7 @@ function CodeLine(props) {
     console.log(props.line);
     let code;
     if (parseNode == "empty") {
-        code = (<CodeInput placeholder="pass"
+        code = (<CodeInput placeholder=""
                             editable={true}
                             multiline={false}
                             //onChangeText={ (newText) => props.changeCode({"type": "replaceAll", "data": newText })}
@@ -208,6 +215,7 @@ function CodeLine(props) {
     let indents = props.line.indents.flatMap((value, index) => (<Indent amount={value[0]} index={index} key={index} parent={value[1]}/>));
     return (<View style={{flex: 1, flexDirection: 'row'}}>{indents}{code}</View>);
 };
+
 
 export default function CodeEditor(props) {
     const [lines, setLines] = useState([]);
@@ -309,7 +317,7 @@ export default function CodeEditor(props) {
     } else if (props.fileState == "loaded") {
         // Fallback to multiline text editor if the source is unparseable.
         if (unparsable) {
-            editor = <CodeInput multiline={true} offset={0}>{props.code}</CodeInput>;
+            editor = <CodeInput multiline={true} offset={0} style={{color: colors.text}}>{props.code}</CodeInput>;
         } else {
             editor = (<FlatList
                                 data={lines}
