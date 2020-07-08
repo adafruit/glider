@@ -10,6 +10,7 @@ import {
 import PropTypes from "prop-types";
 
 class DraggableView extends Component {
+    
     constructor(props) {
         super(props);
         const initialUsedSpace = Math.abs(this.props.initialDrawerSize);
@@ -18,7 +19,7 @@ class DraggableView extends Component {
         if (!props.isInverseDirection) {
             initialPosition = Dimensions.get("window").height - initialUsedSpace;
         }
-
+        
         
         console.log("initial size", initialPosition);
         
@@ -53,6 +54,7 @@ class DraggableView extends Component {
         return moveTravelledFarEnough;
     };
 
+
     startAnimation = (
         velocityY,
         positionY,
@@ -61,7 +63,7 @@ class DraggableView extends Component {
         finalPosition
     ) => {
         const { isInverseDirection } = this.props;
-
+        
         var isGoingToUp = velocityY < 0 ? !isInverseDirection : isInverseDirection;
         var endPosition = isGoingToUp ? finalPosition + 50 : initialPositon + 50;
 
@@ -117,20 +119,21 @@ class DraggableView extends Component {
         this.state.closedPosition = drawerHeight - windowHeight;
         this.state.openPosition = 0;
     }
-
+    
     render() {
+        
         const containerView = this.props.renderContainerView();
         const drawerView = this.props.renderDrawerView();
         const initDrawerView = this.props.renderInitDrawerView();
-
+        var bgColor = this.props.bgColor;
         const drawerPosition = {
             top: this.state.position
         };
-
         console.log(drawerPosition, Dimensions.get("window"));
+        
 
-        return (
-            <View style={styles.viewport}>
+        return (  
+            <View style={[styles.viewport,{backgroundColor: bgColor}]}>
                 <View style={styles.container}>{containerView}</View>
                 <Animated.View
                     style={[
@@ -138,7 +141,7 @@ class DraggableView extends Component {
                         styles.drawer,
                         styles.border,
                         {
-                            backgroundColor: this.props.drawerBg
+                            backgroundColor: bgColor
                         }
                     ]}
                     ref={center => (this.center = center)}
@@ -195,13 +198,14 @@ var styles = StyleSheet.create({
 
 DraggableView.propTypes = {
     drawerBg: PropTypes.string,
+    bgColor: PropTypes.string,
     finalDrawerHeight: PropTypes.number,
     isInverseDirection: PropTypes.bool,
     onInitialPositionReached: PropTypes.func,
     onRelease: PropTypes.func,
     renderContainerView: PropTypes.func,
     renderDrawerView: PropTypes.func,
-    renderInitDrawerView: PropTypes.func
+    renderInitDrawerView: PropTypes.func,  
 };
 
 DraggableView.defaultProps = {
