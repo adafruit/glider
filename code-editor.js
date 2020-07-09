@@ -13,7 +13,7 @@ const font = Platform.OS === 'android' ? "monospace" : "Menlo-Regular";
 
 function Code(props) {
     const { colors } = useTheme();
-    return (<Text {...props} style={[props.style, {fontFamily: font},{ color: colors.text }]}/>);
+    return (<Text  {...props} style={[props.style, {fontFamily: font},{ color: colors.text }]}/>);
 }
 
 function CodeInput(props) {
@@ -79,7 +79,7 @@ function renderKeyword(token, changeCode) {
     console.log("keyword", token.keywordType);
 }
 
-// 
+//
 function renderToken(token, changeCode) {
     switch (token.type) {
         case TokenType.Keyword:
@@ -115,7 +115,7 @@ function renderParseNode(node, changeCode) {
             }
             return (<View style={{flex: 1, flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>(</Code>{a}<Code>)</Code></View>);
         }
-            
+
             break;
         case ParseNodeType.Constant:
             return (<View style={{flex: 0, flexDirection: 'row'}}>{renderToken(node.token, changeCode)}</View>);
@@ -127,7 +127,7 @@ function renderParseNode(node, changeCode) {
             if (node.list.length == 1) {
                 return (<View style={{flex: 0, flexDirection: 'row'}}><Code>import </Code>{renderParseNode(node.list[0], changeCode)}</View>);
             }
-            
+
             break;
         case ParseNodeType.ImportAs:
                 if (node.alias) {
@@ -135,11 +135,11 @@ function renderParseNode(node, changeCode) {
                 } else {
                     return renderParseNode(node.module, changeCode);
                 }
-                
+
                 break;
         case ParseNodeType.Index:
                 return (<View style={{flexDirection: 'row'}}>{renderParseNode(node.baseExpression, changeCode)}<Code>[</Code>{renderParseNode(node.items, changeCode)}<Code>]</Code></View>);
-                
+
                 break;
         case ParseNodeType.IndexItems:
             if (node.items.length == 1) {
@@ -148,7 +148,7 @@ function renderParseNode(node, changeCode) {
             sbreak;
         case ParseNodeType.MemberAccess:
                 return (<View style={{flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>.</Code>{renderParseNode(node.memberName, changeCode)}</View>);
-                
+
                 break;
         case ParseNodeType.Name: {
                 return (<CodeInput placeholder="module"
@@ -212,8 +212,9 @@ function CodeLine(props) {
     } else {
         code = renderParseNode(parseNode, props.changeCode);
     }
+
     let indents = props.line.indents.flatMap((value, index) => (<Indent amount={value[0]} index={index} key={index} parent={value[1]}/>));
-    return (<View style={{flex: 1, flexDirection: 'row'}}>{indents}{code}</View>);
+    return (<View style={{flex: 1, flexDirection: 'row'}}><Code>{props.index+1 + " "}</Code>{indents}{code}</View>);
 };
 
 
@@ -310,7 +311,7 @@ export default function CodeEditor(props) {
             analyzer.updateOpenFileContents(props.fileName, props.fileVersion, props.code);
         }
     }, [props.fileName, props.fileVersion, props.code]);
-    
+
     let editor;
     if (props.fileState == "loading") {
         editor = (<ActivityIndicator size="large" color="#00ff00" />);
@@ -319,9 +320,11 @@ export default function CodeEditor(props) {
         if (unparsable) {
             editor = <CodeInput multiline={true} offset={0} style={{color: colors.text}}>{props.code}</CodeInput>;
         } else {
+            console.log("howdy");
+            console.log(lines);
             editor = (<FlatList
                                 data={lines}
-                                renderItem={({item}) => <CodeLine line={item} changeCode={props.changeCode}/>}
+                                renderItem={({item, index}) => <CodeLine index={index} line={item} changeCode={props.changeCode}/>}
                             />);
         }
     }
