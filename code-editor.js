@@ -212,9 +212,9 @@ function CodeLine(props) {
     } else {
         code = renderParseNode(parseNode, props.changeCode);
     }
-
+    let space = " ";
     let indents = props.line.indents.flatMap((value, index) => (<Indent amount={value[0]} index={index} key={index} parent={value[1]}/>));
-    return (<View style={{flex: 1, flexDirection: 'row'}}><Code>{props.index+1 + " "}</Code>{indents}{code}</View>);
+    return (<View style={{flex: 1, flexDirection: 'row'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
 };
 
 
@@ -320,11 +320,9 @@ export default function CodeEditor(props) {
         if (unparsable) {
             editor = <CodeInput multiline={true} offset={0} style={{color: colors.text}}>{props.code}</CodeInput>;
         } else {
-            console.log("howdy");
-            console.log(lines);
             editor = (<FlatList
                                 data={lines}
-                                renderItem={({item, index}) => <CodeLine index={index} line={item} changeCode={props.changeCode}/>}
+                                renderItem={({item, index}) => <CodeLine index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>}
                             />);
         }
     }
