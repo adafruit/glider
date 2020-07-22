@@ -28,7 +28,7 @@ function CodeInput(props) {
     function patch(offset, oldValue, newValue) {
         setChangeTimeout(0);
         setOldValue(newValue);
-        console.log(performance.now(), "patch", offset, oldValue, newValue);
+        //console.log(performance.now(), "patch", offset, oldValue, newValue);
         props.changeCode({"type": "patch", "offset": offset, "oldValue": oldValue, "newValue": newValue});
     }
     function onChange(newText) {

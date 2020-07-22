@@ -1,13 +1,13 @@
 
 import React, { useReducer, useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
+import {Alert} from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { AppearanceProvider, useColorScheme} from 'react-native-appearance';
 import DraggableView from './draggable-view';
 import CodeEditor from './code-editor';
 import Status, { StatusSummary} from './status';
 import { useAppState } from 'react-native-hooks'
-
 import { stringToBytes, bytesToString } from 'convert-string';
 import {
     NativeEventEmitter,
@@ -141,7 +141,7 @@ export default function App() {
         console.log("started");
         setBleState("started");
       }
-  }
+    }
 
     const handleStopScan = () => {
         console.log('Scan is stopped');
@@ -162,6 +162,18 @@ export default function App() {
         //   peripherals.set(peripheral.id, peripheral);
         //   this.setState({peripherals});
         // }
+        setBleState("disconnected");
+        
+        Alert.alert(
+          "Device Disconnected",
+          "You have lost connection with your device",
+          [
+            {
+              text: "Dismiss",
+            }
+          ],
+          { cancelable: false }
+        );
         console.log('Disconnected from ' + data.peripheral);
       }
 
@@ -312,10 +324,20 @@ export default function App() {
         isInverseDirection={true}
         bgColor={scheme === 'light' ? 'white' : 'rgb(18,18,18)'}
         initialDrawerSize={17}
-        renderContainerView={() => (<View><StatusSummary bleState={bleState} /><CodeEditor code={code.code} changeCode={changeCode} fileState={fileState} fileName="/code.py" fileVersion={code.version}/></View>)}
+        renderContainerView={() => (
+        <View>
+            <StatusSummary bleState={bleState} />
+            <CodeEditor 
+              code={code.code} 
+              changeCode={changeCode} 
+              fileState={fileState} 
+              fileName="/code.py" 
+              fileVersion={code.version}
+            /> 
+        </View>)}
         renderDrawerView={() => (<Status bleState={bleState} peripherals={peripherals} setPeripheral={setPeripheral} />)}
-        renderInitDrawerView={() => (<StatusSummary bleState={bleState} />
-          )}
+        renderInitDrawerView={() => (<StatusSummary bleState={bleState}/>)}
+        
       />
       </SafeAreaView>
       </NavigationContainer></AppearanceProvider>
