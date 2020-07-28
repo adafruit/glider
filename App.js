@@ -1,7 +1,7 @@
 
 import React, { useReducer, useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
-import {Alert} from 'react-native';
+import {Alert, TextInput, Text} from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { AppearanceProvider, useColorScheme} from 'react-native-appearance';
 import DraggableView from './draggable-view';
@@ -105,12 +105,17 @@ function codeReducer(state, action) {
 
 export default function App() {
     const scheme = useColorScheme();
+    var dark = false;
+    if (scheme == 'dark'){
+      dark = true;
+    }
     const currentAppState = useAppState();
     const [bleState, setBleState] = useState("stopped");
     const [peripherals, changePeripherals] = useReducer(peripheralReducer, new Map());
     const [peripheral, setPeripheral] = useState(null);
     const [fileState, setFileState] = useState("unloaded");
     const [fileLength, setFileLength] = useState(-1);
+    const [search, setSearch] = useState("");
 
     const [code, changeCode] = useReducer(codeReducer, {code:"", version:0, peripheral_id: null});
 
@@ -288,7 +293,7 @@ export default function App() {
         const handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral );
         const handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic );
         const handlerUpdateState = bleManagerEmitter.addListener('BleManagerDidUpdateState', handleUpdateState);
-
+        
         if (Platform.OS === 'android' && Platform.Version >= 23) {
             setBleState("permCheck");
             PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
@@ -327,6 +332,26 @@ export default function App() {
         renderContainerView={() => (
         <View>
             <StatusSummary bleState={bleState} />
+            <Text></Text>
+            <TextInput
+              
+              style={{
+                color: dark ? 'white' : 'rgb(18,18,18)',
+                paddingLeft: 15,
+                paddingRight: 15,
+                paddingTop: 10,
+                paddingBottom: 10,
+                borderWidth: 1,
+                borderRadius: 30,
+                borderColor: dark ? 'white' : 'rgb(18,18,18)'}}
+              
+              onChangeText={search => setSearch(search)}
+              underlineColorAndroid="black"
+              placeholder="Search through the code ..."
+              placeholderTextColor={scheme === 'dark' ? 'white' : 'rgb(18,18,18)'}
+              keyboardType="default"
+            />
+            <Text></Text>
             <CodeEditor 
               code={code.code} 
               changeCode={changeCode} 
