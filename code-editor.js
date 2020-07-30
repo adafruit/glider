@@ -76,7 +76,7 @@ function renderKeyword(token, changeCode) {
                             editable={true}
                             multiline={false}>{value}</CodeInput>);
     }
-    console.log("keyword", token.keywordType);
+    //console.log("keyword", token.keywordType);
 }
 
 //
@@ -88,7 +88,7 @@ function renderToken(token, changeCode) {
         default:
             break;
     }
-    console.log("Token", token.type, token);
+    //console.log("Token", token.type, token);
 }
 
 function renderParseNode(node, changeCode) {
@@ -189,19 +189,19 @@ function renderParseNode(node, changeCode) {
             }
             break;
         case ParseNodeType.While:
-            console.log("while", node);
+            //console.log("while", node);
             return (<View style={{flexDirection: 'row'}}><Code>while </Code>{renderParseNode(node.testExpression, changeCode)}<Code>:</Code></View>);
             break;
         default:
             break;
     }
-            console.log("unsupported", node.nodeType, node);
+            //console.log("unsupported", node.nodeType, node);
 }
 
 
 function CodeLine(props) {
     let parseNode = props.line.node;
-    console.log(props.line);
+
     let code;
     if (parseNode == "empty") {
         code = (<CodeInput placeholder=""
@@ -214,6 +214,9 @@ function CodeLine(props) {
     }
     let space = " ";
     let indents = props.line.indents.flatMap((value, index) => (<Indent amount={value[0]} index={index} key={index} parent={value[1]}/>));
+    //console.log("LETS PRINT THE CODE---------------------------------------", code);
+    
+    //possibly turn this line into a string 
     return (<View style={{flex: 1, flexDirection: 'row'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
 };
 
@@ -221,12 +224,14 @@ function CodeLine(props) {
 export default function CodeEditor(props) {
     const [lines, setLines] = useState([]);
     const [unparsable, setUnparsable] = useState(false);
-
+    useEffect(() => {
+        console.log("SEARCH HAS BEEN CHANGED! -------------------",props.searchBar);
+  }, [props.searchBar]);
     function analysisComplete(results) {
         if (!results) {
             return;
         }
-        console.log(results);
+        //console.log(results);
         if (results.fatalErrorOccurred) {
             setUnparsable(true);
             return;
@@ -264,7 +269,7 @@ export default function CodeEditor(props) {
                 let newIndent = statements[0].start - line.start;
                 if (scope == "pushscope") {
                     // Include the last parse node so the empty space know what it belongs to
-                    console.log(lines, lines.length);
+                    //console.log(lines, lines.length);
                     indents.push([newIndent - indent, lines[lines.length - 1][1]]);
                 } else {
                     indents.pop();
@@ -274,7 +279,7 @@ export default function CodeEditor(props) {
             }
             let parseNode = statements.shift();
             if (!parseNode) {
-                console.log(line, parseNode);
+                //console.log(line, parseNode);
             } else if (parseNode &&
                        parseNode.start == line.start + indent &&
                        (parseNode.length == line.length - 1 - indent ||
@@ -292,18 +297,20 @@ export default function CodeEditor(props) {
                     lines.push({indents: Array.from(indents), node: parseNode, id: parseNode.start.toString()});
                     statements.unshift("pushscope", ...parseNode.suite.statements, "popscope");
                 } else {
-                    console.log("unhandled node", parseNode, line, indent);
+                    //console.log("unhandled node", parseNode, line, indent);
                 }
             }
         }
-        console.log(statements);
-        console.log(lines);
+        //console.log(statements);
+        //console.log(lines);
         setLines(lines);
     };
     useEffect(() => {
         analyzer.setCompletionCallback(analysisComplete);
 
-        console.log("file updated", props.fileName, props.fileVersion, props.code);
+        //console.log("file updated", props.fileName, props.fileVersion, props.code);
+        //console.log("LETS PRINT PROPS.CODE AGAIN ----------------");
+        //(typeof props.code);
         if (firstAnalyzerRun) {
             analyzer.setFileOpened(props.fileName, props.fileVersion, props.code);
             firstAnalyzerRun = false;
@@ -320,6 +327,7 @@ export default function CodeEditor(props) {
         if (unparsable) {
             editor = <CodeInput multiline={true} offset={0} style={{color: colors.text}}>{props.code}</CodeInput>;
         } else {
+
             editor = (<FlatList
                                 data={lines}
                                 renderItem={({item, index}) => <CodeLine index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>}
