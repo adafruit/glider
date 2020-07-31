@@ -100,10 +100,10 @@ function renderParseNode(node, changeCode) {
             }
             break;
         case ParseNodeType.Assignment:
-            return (<View style={{flex: 1, flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code> = </Code>{renderParseNode(node.rightExpression, changeCode)}</View>);
+            return (<View style={{flex: 1, flexDirection: 'row', alignItems: 'flex-end'}}>{renderParseNode(node.leftExpression, changeCode)}<Code> = </Code>{renderParseNode(node.rightExpression, changeCode)}</View>);
             break;
         case ParseNodeType.BinaryOperation:
-            return (<View style={{flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code> ?? </Code>{renderParseNode(node.rightExpression, changeCode)}</View>);
+            return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}>{renderParseNode(node.leftExpression, changeCode)}<Code> ?? </Code>{renderParseNode(node.rightExpression, changeCode)}</View>);
             break;
         case ParseNodeType.Call:{
             var a = [];
@@ -113,19 +113,19 @@ function renderParseNode(node, changeCode) {
                 }
                 a.push(<View key={a.length}>{renderParseNode(argument, changeCode)}</View>);
             }
-            return (<View style={{flex: 1, flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>(</Code>{a}<Code>)</Code></View>);
+            return (<View style={{flex: 1, flexDirection: 'row', alignItems: 'flex-end'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>(</Code>{a}<Code>)</Code></View>);
         }
 
             break;
         case ParseNodeType.Constant:
-            return (<View style={{flex: 0, flexDirection: 'row'}}>{renderToken(node.token, changeCode)}</View>);
+            return (<View style={{flex: 0, flexDirection: 'row', alignItems: 'flex-end'}}>{renderToken(node.token, changeCode)}</View>);
         case ParseNodeType.Function:
-            return (<View style={{flexDirection: 'row'}}><Code>def </Code>{renderParseNode(node.name, changeCode)}<Code>(</Code>{renderParseNode(node.parameters[0], changeCode)}<Code>):</Code></View>);
+            return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}><Code>def </Code>{renderParseNode(node.name, changeCode)}<Code>(</Code>{renderParseNode(node.parameters[0], changeCode)}<Code>):</Code></View>);
         case ParseNodeType.If:
-            return (<View style={{flexDirection: 'row'}}><Code>if </Code>{renderParseNode(node.testExpression, changeCode)}<Code>:</Code></View>);
+            return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}><Code>if </Code>{renderParseNode(node.testExpression, changeCode)}<Code>:</Code></View>);
         case ParseNodeType.Import:
             if (node.list.length == 1) {
-                return (<View style={{flex: 0, flexDirection: 'row'}}><Code>import </Code>{renderParseNode(node.list[0], changeCode)}</View>);
+                return (<View style={{flex: 0, flexDirection: 'row', alignItems: 'flex-end'}}><Code>import </Code>{renderParseNode(node.list[0], changeCode)}</View>);
             }
 
             break;
@@ -138,7 +138,7 @@ function renderParseNode(node, changeCode) {
 
                 break;
         case ParseNodeType.Index:
-                return (<View style={{flexDirection: 'row'}}>{renderParseNode(node.baseExpression, changeCode)}<Code>[</Code>{renderParseNode(node.items, changeCode)}<Code>]</Code></View>);
+                return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}>{renderParseNode(node.baseExpression, changeCode)}<Code>[</Code>{renderParseNode(node.items, changeCode)}<Code>]</Code></View>);
 
                 break;
         case ParseNodeType.IndexItems:
@@ -147,7 +147,7 @@ function renderParseNode(node, changeCode) {
             }
             sbreak;
         case ParseNodeType.MemberAccess:
-                return (<View style={{flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>.</Code>{renderParseNode(node.memberName, changeCode)}</View>);
+                return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>.</Code>{renderParseNode(node.memberName, changeCode)}</View>);
 
                 break;
         case ParseNodeType.Name: {
@@ -190,7 +190,7 @@ function renderParseNode(node, changeCode) {
             break;
         case ParseNodeType.While:
             console.log("while", node);
-            return (<View style={{flexDirection: 'row'}}><Code>while </Code>{renderParseNode(node.testExpression, changeCode)}<Code>:</Code></View>);
+            return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}><Code>while </Code>{renderParseNode(node.testExpression, changeCode)}<Code>:</Code></View>);
             break;
         default:
             break;
@@ -214,7 +214,7 @@ function CodeLine(props) {
     }
     let space = " ";
     let indents = props.line.indents.flatMap((value, index) => (<Indent amount={value[0]} index={index} key={index} parent={value[1]}/>));
-    return (<View style={{flex: 1, flexDirection: 'row'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
+    return (<View style={{flex: 1, flexDirection: 'row', alignItems: 'flex-end'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
 };
 
 
