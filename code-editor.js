@@ -91,6 +91,9 @@ function renderToken(token, changeCode) {
     //console.log("Token", token.type, token);
 }
 
+
+
+
 function renderParseNode(node, changeCode) {
     const { colors } = useTheme();
     switch (node.nodeType) {
@@ -225,7 +228,7 @@ export default function CodeEditor(props) {
     const [lines, setLines] = useState([]);
     const [unparsable, setUnparsable] = useState(false);
     useEffect(() => {
-        console.log("SEARCH HAS BEEN CHANGED! -------------------",props.searchBar);
+        //console.log("SEARCH HAS BEEN CHANGED! -------------------",props.searchBar);
   }, [props.searchBar]);
     function analysisComplete(results) {
         if (!results) {
@@ -319,6 +322,22 @@ export default function CodeEditor(props) {
         }
     }, [props.fileName, props.fileVersion, props.code]);
 
+    const renderFlatlist = ({item, index}) => {
+    //takes string props.code
+    //separates it by line
+
+    var flatLines = props.code;
+    console.log("Value of index is", index);
+    const newFlat = flatLines.split("\n");
+    // looks through each line for characters
+    //return emptiness or return component
+    if (!(newFlat[index].toLowerCase().includes(props.searchBar.toLowerCase()))){
+        return(<></>)
+    }
+
+    return (<CodeLine index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>)
+    }
+
     let editor;
     if (props.fileState == "loading") {
         editor = (<ActivityIndicator size="large" color="#00ff00" />);
@@ -330,7 +349,7 @@ export default function CodeEditor(props) {
 
             editor = (<FlatList
                                 data={lines}
-                                renderItem={({item, index}) => <CodeLine index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>}
+                                renderItem={renderFlatlist}
                             />);
         }
     }

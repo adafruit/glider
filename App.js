@@ -351,6 +351,7 @@ export default function App() {
               placeholder="Search through the code ..."
               placeholderTextColor={scheme === 'dark' ? 'white' : 'rgb(18,18,18)'}
               keyboardType="default"
+              clearButtonMode="while-editing"
             />
             <Text></Text>
             <CodeEditor 
