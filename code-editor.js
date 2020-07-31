@@ -62,10 +62,15 @@ const styles = StyleSheet.create({
     },
   });
 
-function Indent({amount, index, parent}) {
+function Indent(props) {
     let whitespace = "    ";
     var { colors } = useTheme();
-    return (<Code style={index % 2 == 0 ? {backgroundColor: colors.card} : {backgroundColor: colors.card}}>{whitespace}</Code>);
+    console.log("Our props highlight says ", props.highlight, " for line ", props.index);
+    if (props.highlight == "yes"){
+        return (<Code style={props.index % 2 == 0 ? {backgroundColor: "#ffb533"} : {backgroundColor: colors.card}}>{whitespace}</Code>);
+    }
+
+    return (<Code style={props.index % 2 == 0 ? {backgroundColor: colors.card} : {backgroundColor: colors.card}}>{whitespace}</Code>);
 }
 
 function renderKeyword(token, changeCode) {
@@ -216,12 +221,17 @@ function CodeLine(props) {
         code = renderParseNode(parseNode, props.changeCode);
     }
     let space = " ";
-    let indents = props.line.indents.flatMap((value, index) => (<Indent amount={value[0]} index={index} key={index} parent={value[1]}/>));
     //console.log("LETS PRINT THE CODE---------------------------------------", code);
     
     //possibly turn this line into a string 
+    if (props.highlight == "yes") {  
+        let indents = props.line.indents.flatMap((value, index) => (<Indent highlight="yes" amount={value[0]} index={index} key={index} parent={value[1]}/>));      
+        return (<View style={{flex: 1, flexDirection: 'row',backgroundColor: "#ffb533"}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
+    }
+    let indents = props.line.indents.flatMap((value, index) => (<Indent highlight="no" amount={value[0]} index={index} key={index} parent={value[1]}/>));
     return (<View style={{flex: 1, flexDirection: 'row'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
-};
+
+    };
 
 
 export default function CodeEditor(props) {
@@ -331,11 +341,11 @@ export default function CodeEditor(props) {
     const newFlat = flatLines.split("\n");
     // looks through each line for characters
     //return emptiness or return component
-    if (!(newFlat[index].toLowerCase().includes(props.searchBar.toLowerCase()))){
-        return(<></>)
+    if (!(newFlat[index].toLowerCase().includes(props.searchBar.toLowerCase())) || props.searchBar == ""){
+        return(<CodeLine highlight="no" index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>)
     }
 
-    return (<CodeLine index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>)
+    return (<CodeLine highlight="yes" index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>)
     }
 
     let editor;
