@@ -129,7 +129,7 @@ class DraggableView extends Component {
         const drawerPosition = {
             top: this.state.position
         };
-        console.log(drawerPosition, Dimensions.get("window"));
+        //console.log(drawerPosition, Dimensions.get("window"));
         
 
         return (  
