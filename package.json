@@ -30,6 +30,7 @@
     "react-native-screens": "^2.9.0",
     "react-native-swipeout": "^2.3.6",
     "react-native-vector-icons": "^7.0.0",
+    "text-encoding": "^0.7.0",
     "tsutils": "^3.17.1",
     "typescript": "^3.6.3"
   },

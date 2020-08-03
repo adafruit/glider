@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import {ActivityIndicator, FlatList, Platform, TextInput, KeyboardAvoidingView, Text, View, StyleSheet} from 'react-native';
+import {ActivityIndicator, FlatList, Platform, TextInput, KeyboardAvoidingView, Text, View, StyleSheet, Button} from 'react-native';
 import {AnalyzerService} from './pyright/server/src/analyzer/service';
 import {ArgumentCategory, ParseNodeType} from './pyright/server/src/parser/parseNodes';
 import {TokenType, KeywordType} from './pyright/server/src/parser/tokenizerTypes';
@@ -53,6 +53,20 @@ function CodeInput(props) {
             }
         }
     }
+    function changeValue() {
+        var lookAtValue = newValue;
+        newValue = lookAtValue == "True" ? setNewValue("False") : setNewValue("True");
+            
+    }
+    
+    if ( props.keyword == "yes" ){
+    
+        return (<Button onPress={changeValue} 
+            title={newValue}
+            style={[props.style, {fontFamily: font, paddingVertical: 0, textAlignVertical: 'top'}, debugStyle]}
+        />)
+    }
+
     return (<TextInput {...props} style={[props.style, {fontFamily: font, paddingVertical: 0, textAlignVertical: 'top'}, debugStyle]} onChangeText={onChange} onEndEditing={onDone}>{newValue}</TextInput>);
 }
 
@@ -69,12 +83,16 @@ function Indent({amount, index, parent}) {
 }
 
 function renderKeyword(token, changeCode) {
+
+
     if (token.keywordType == KeywordType.True || token.keywordType == KeywordType.False) {
         let value = token.keywordType == KeywordType.True ? "True" : "False";
-        return (<CodeInput placeholder="bool"
+        return (<CodeInput  placeholder="bool"
+                            keyword="yes"
                             style={styles.keyword}
                             editable={true}
-                            multiline={false}>{value}</CodeInput>);
+                            multiline={false}>{value}
+                </CodeInput>);
     }
     console.log("keyword", token.keywordType);
 }
@@ -117,8 +135,10 @@ function renderParseNode(node, changeCode) {
         }
 
             break;
-        case ParseNodeType.Constant:
-            return (<View style={{flex: 0, flexDirection: 'row'}}>{renderToken(node.token, changeCode)}</View>);
+        case ParseNodeType.Constant: {
+            return (<View style={{flex: 0, flexDirection: 'row', alignItems: 'flex-end'}}>{renderToken(node.token, changeCode)}</View>); 
+        }
+            break;
         case ParseNodeType.Function:
             return (<View style={{flexDirection: 'row'}}><Code>def </Code>{renderParseNode(node.name, changeCode)}<Code>(</Code>{renderParseNode(node.parameters[0], changeCode)}<Code>):</Code></View>);
         case ParseNodeType.If:
@@ -145,7 +165,7 @@ function renderParseNode(node, changeCode) {
             if (node.items.length == 1) {
                 return renderParseNode(node.items[0], changeCode);
             }
-            sbreak;
+            break;
         case ParseNodeType.MemberAccess:
                 return (<View style={{flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>.</Code>{renderParseNode(node.memberName, changeCode)}</View>);
 

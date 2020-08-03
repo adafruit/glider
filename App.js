@@ -9,6 +9,7 @@ import CodeEditor from './code-editor';
 import Status, { StatusSummary} from './status';
 import { useAppState } from 'react-native-hooks'
 import { stringToBytes, bytesToString } from 'convert-string';
+import * as encoding from 'text-encoding';
 import {
     NativeEventEmitter,
     NativeModules,
@@ -70,7 +71,7 @@ function codeReducer(state, action) {
   } else if (action.type == "patch") {
     console.log("TODO send data back to CP");
     console.log(state, action);
-    let encoder = new TextEncoder();
+    let encoder = new encoding.TextEncoder();
     let encodedInsert = encoder.encode(action.newValue);
     let totalLength = 2 + 2 + 4 + 4 + 4 + encodedInsert.length
     let patch = new ArrayBuffer(totalLength);
