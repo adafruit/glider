@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 function Indent(props) {
     let whitespace = "    ";
     var { colors } = useTheme();
-    console.log("Our props highlight says ", props.highlight, " for line ", props.index);
+    // console.log("Our props highlight says ", props.highlight, " for line ", props.index);
     if (props.highlight == "yes"){
         return (<Code style={props.index % 2 == 0 ? {backgroundColor: "#ffb533"} : {backgroundColor: colors.card}}>{whitespace}</Code>);
     }
@@ -73,22 +73,24 @@ function Indent(props) {
     return (<Code style={props.index % 2 == 0 ? {backgroundColor: colors.card} : {backgroundColor: colors.card}}>{whitespace}</Code>);
 }
 
-function renderKeyword(token, changeCode) {
+function renderKeyword(token, changeCode, offset) {
     if (token.keywordType == KeywordType.True || token.keywordType == KeywordType.False) {
         let value = token.keywordType == KeywordType.True ? "True" : "False";
         return (<CodeInput placeholder="bool"
                             style={styles.keyword}
                             editable={true}
-                            multiline={false}>{value}</CodeInput>);
+                            multiline={false}
+                            offset={offset}
+                            changeCode={changeCode}>{value}</CodeInput>);
     }
     //console.log("keyword", token.keywordType);
 }
 
-//
-function renderToken(token, changeCode) {
+
+function renderToken(token, changeCode, offset) {
     switch (token.type) {
         case TokenType.Keyword:
-            return renderKeyword(token, changeCode);
+            return renderKeyword(token, changeCode, offset);
             break;
         default:
             break;
@@ -126,7 +128,7 @@ function renderParseNode(node, changeCode) {
 
             break;
         case ParseNodeType.Constant:
-            return (<View style={{flex: 0, flexDirection: 'row', alignItems: 'flex-end'}}>{renderToken(node.token, changeCode)}</View>);
+            return (<View style={{flex: 0, flexDirection: 'row', alignItems: 'flex-end'}}>{renderToken(node.token, changeCode, node.start)}</View>);
         case ParseNodeType.Function:
             return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}><Code>def </Code>{renderParseNode(node.name, changeCode)}<Code>(</Code>{renderParseNode(node.parameters[0], changeCode)}<Code>):</Code></View>);
         case ParseNodeType.If:
@@ -163,6 +165,8 @@ function renderParseNode(node, changeCode) {
                                     editable={true}
                                     multiline={true}
                                     style={{color: colors.text}}
+                                    changeCode={changeCode}
+                                    offset={node.start}
                                     //onChangeText={ (newText) => props.changeCode({"type": "replaceAll", "data": newText })}
                                     >{node.nameToken.value}</CodeInput>);
                 break;
@@ -203,7 +207,7 @@ function renderParseNode(node, changeCode) {
         default:
             break;
     }
-            //console.log("unsupported", node.nodeType, node);
+    //console.log("unsupported", node.nodeType, node);
 }
 
 
@@ -215,6 +219,7 @@ function CodeLine(props) {
         code = (<CodeInput placeholder=""
                             editable={true}
                             multiline={false}
+                            changeCode={props.changeCode}
                             //onChangeText={ (newText) => props.changeCode({"type": "replaceAll", "data": newText })}
                             />);
     } else {
@@ -233,16 +238,15 @@ function CodeLine(props) {
 
 
 export default function CodeEditor(props) {
+    const { colors } = useTheme();
     const [lines, setLines] = useState([]);
     const [unparsable, setUnparsable] = useState(false);
-    useEffect(() => {
-        //console.log("SEARCH HAS BEEN CHANGED! -------------------",props.searchBar);
-  }, [props.searchBar]);
+    
     function analysisComplete(results) {
         if (!results) {
             return;
         }
-        //console.log(results);
+        console.log(results);
         if (results.fatalErrorOccurred) {
             setUnparsable(true);
             return;
@@ -319,9 +323,7 @@ export default function CodeEditor(props) {
     useEffect(() => {
         analyzer.setCompletionCallback(analysisComplete);
 
-        //console.log("file updated", props.fileName, props.fileVersion, props.code);
-        //console.log("LETS PRINT PROPS.CODE AGAIN ----------------");
-        //(typeof props.code);
+        console.log("file updated", props.fileName, props.fileVersion, props.code);
         if (firstAnalyzerRun) {
             analyzer.setFileOpened(props.fileName, props.fileVersion, props.code);
             firstAnalyzerRun = false;
@@ -331,19 +333,19 @@ export default function CodeEditor(props) {
     }, [props.fileName, props.fileVersion, props.code]);
 
     const renderFlatlist = ({item, index}) => {
-    //takes string props.code
-    //separates it by line
+        //takes string props.code
+        //separates it by line
 
-    var flatLines = props.code;
-    console.log("Value of index is", index);
-    const newFlat = flatLines.split("\n");
-    // looks through each line for characters
-    //return emptiness or return component
-    if (!(newFlat[index].toLowerCase().includes(props.searchBar.toLowerCase())) || props.searchBar == ""){
-        return(<CodeLine highlight="no" index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>)
-    }
+        var flatLines = props.code;
+        console.log("Value of index is", index);
+        const newFlat = flatLines.split("\n");
+        // looks through each line for characters
+        //return emptiness or return component
+        if (!(newFlat[index].toLowerCase().includes(props.searchBar.toLowerCase())) || props.searchBar == ""){
+            return(<CodeLine highlight="no" index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>)
+        }
 
-    return (<CodeLine highlight="yes" index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>)
+        return (<CodeLine highlight="yes" index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>)
     }
 
     let editor;
@@ -352,7 +354,7 @@ export default function CodeEditor(props) {
     } else if (props.fileState == "loaded") {
         // Fallback to multiline text editor if the source is unparseable.
         if (unparsable) {
-            editor = <CodeInput multiline={true} offset={0} style={{color: colors.text}}>{props.code}</CodeInput>;
+            editor = <CodeInput multiline={true} offset={0} style={{color: colors.text}} changeCode={props.changeCode}>{props.code}</CodeInput>;
         } else {
 
             editor = (<FlatList
