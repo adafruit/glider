@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import {ActivityIndicator, FlatList, Platform, TextInput, KeyboardAvoidingView, Text, View, StyleSheet, Button} from 'react-native';
+import {Button} from 'react-native-elements';
+import {ActivityIndicator, FlatList, Platform, TextInput, KeyboardAvoidingView, Text, View, StyleSheet} from 'react-native';
 import {AnalyzerService} from './pyright/server/src/analyzer/service';
 import {ArgumentCategory, ParseNodeType} from './pyright/server/src/parser/parseNodes';
 import {TokenType, KeywordType} from './pyright/server/src/parser/tokenizerTypes';
@@ -59,12 +60,18 @@ function CodeInput(props) {
             
     }
     
-    if ( props.keyword == "yes" ){
+    if ( props.keyword == "yes" ) {
     
-        return (<Button onPress={changeValue} 
-            title={newValue}
-            style={[props.style, {fontFamily: font, paddingVertical: 0, textAlignVertical: 'top'}, debugStyle]}
-        />)
+        return (
+        
+            <Button onPress={changeValue} 
+                title={newValue}
+                type="clear"
+                titleStyle={[props.style, {fontFamily: font}, debugStyle]}
+                buttonStyle={{padding: 0}}
+            />
+       
+        )
     }
 
     return (<TextInput {...props} style={[props.style, {fontFamily: font, paddingVertical: 0, textAlignVertical: 'top'}, debugStyle]} onChangeText={onChange} onEndEditing={onDone}>{newValue}</TextInput>);
@@ -72,7 +79,8 @@ function CodeInput(props) {
 
 const styles = StyleSheet.create({
     keyword: {
-      color: 'blue',
+      color: '#145C9E',
+      fontSize: 15,
     },
   });
 
@@ -254,7 +262,6 @@ export default function CodeEditor(props) {
     const [lines, setLines] = useState([]);
     const [unparsable, setUnparsable] = useState(false);
     useEffect(() => {
-        //console.log("SEARCH HAS BEEN CHANGED! -------------------",props.searchBar);
   }, [props.searchBar]);
     function analysisComplete(results) {
         if (!results) {
@@ -338,8 +345,6 @@ export default function CodeEditor(props) {
         analyzer.setCompletionCallback(analysisComplete);
 
         //console.log("file updated", props.fileName, props.fileVersion, props.code);
-        //console.log("LETS PRINT PROPS.CODE AGAIN ----------------");
-        //(typeof props.code);
         if (firstAnalyzerRun) {
             analyzer.setFileOpened(props.fileName, props.fileVersion, props.code);
             firstAnalyzerRun = false;
@@ -353,7 +358,7 @@ export default function CodeEditor(props) {
     //separates it by line
 
     var flatLines = props.code;
-    console.log("Value of index is", index);
+    //console.log("Value of index is", index);
     const newFlat = flatLines.split("\n");
     // looks through each line for characters
     //return emptiness or return component
