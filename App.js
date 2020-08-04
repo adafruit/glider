@@ -1,7 +1,7 @@
 
 import React, { useReducer, useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
-import {Alert} from 'react-native';
+import {Alert, TextInput, Text} from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { AppearanceProvider, useColorScheme} from 'react-native-appearance';
 import DraggableView from './draggable-view';
@@ -27,20 +27,20 @@ const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 function peripheralReducer(state, action) {
     if (action.action == "add") {
         let peripheral = action.peripheral;
-        console.log(peripheral);
+        //console.log(peripheral);
         if (state.has(peripheral.id)) {
             return state; // No state change
         }
         if (!peripheral.advertising.serviceUUIDs || peripheral.advertising.serviceUUIDs.length == 0 || peripheral.advertising.serviceUUIDs[0].toLowerCase() != 'adaf0100-4369-7263-7569-74507974686e') {
             return state;
         }
-        console.log(peripheral);
+        //console.log(peripheral);
         var newMap = new Map(state);
         newMap.set(peripheral.id, peripheral);
         return newMap;
     } else if (action.action == "scan") {
         BleManager.scan([], 3).then((results) => {
-            console.log('Scanning...');
+            //console.log('Scanning...');
         });
     } else if (action.action == "clear") {
         state.clear();
@@ -61,7 +61,7 @@ function codeReducer(state, action) {
   } else if (action.type == "connect") {
     newState.peripheral_id = action.peripheral_id;
     if (state.queue && state.queue.length > 0) {
-      console.log("missed patches", state.queue);
+      //console.log("missed patches", state.queue);
     }
   } else if (action.type == "disconnect") {
     newState.peripheral_id = null;
@@ -87,37 +87,43 @@ function codeReducer(state, action) {
     // React native bridging can't handle Uint8Array so copy into a normal array.
     let finalPatch = Array.from(new Uint8Array(patch));
     if (state.peripheral_id) {
-      console.log("writing patch", finalPatch, patch);
+      //("writing patch", finalPatch, patch);
       BleManager.write(state.peripheral_id, service, contentsCharacteristic, finalPatch).then(() => {
-        console.log('Wrote patch to device');
+        //console.log('Wrote patch to device');
       });
     } else {
-      console.log("no peripheral", newState.queue);
+      //console.log("no peripheral", newState.queue);
       newState.queue.push(patch);
     }
 
-    console.log("merging together", action, state.code);
+    //console.log("merging together", action, state.code);
     newState.code = state.code.substring(0, action.offset) + action.newValue + state.code.substring(action.offset + action.oldValue.length, state.code.length);
   }
 
-  console.log("new code state", newState);
+  //console.log("new code state", newState);
   return newState;
 }
 
 export default function App() {
     const scheme = useColorScheme();
+    var dark = false;
+    if (scheme == 'dark'){
+      dark = true;
+    }
     const currentAppState = useAppState();
     const [bleState, setBleState] = useState("stopped");
     const [peripherals, changePeripherals] = useReducer(peripheralReducer, new Map());
     const [peripheral, setPeripheral] = useState(null);
     const [fileState, setFileState] = useState("unloaded");
     const [fileLength, setFileLength] = useState(-1);
+    const [search, setSearch] = useState("");
 
     const [code, changeCode] = useReducer(codeReducer, {code:"", version:0, peripheral_id: null});
 
+
     useEffect(() => {
         if (currentAppState === 'active') {
-          console.log('App has come to the foreground!', bleState);
+          //console.log('App has come to the foreground!', bleState);
           BleManager.start({showAlert: true});
           BleManager.checkState();
         } else {
@@ -131,26 +137,26 @@ export default function App() {
     }, [currentAppState]);
 
     const handleUpdateValueForCharacteristic = (data) => {
-        console.log(data);
-        console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, bytesToString(data.value));
+        //console.log(data);
+        //console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, bytesToString(data.value));
         changeCode({"type": "read", "data": bytesToString(data.value)});
     }
 
     const handleUpdateState = (data) => {
-      console.log("update state", data);
+      //console.log("update state", data);
       if (data.state == "on") {
-        console.log("started");
+        //console.log("started");
         setBleState("started");
       }
     }
 
     const handleStopScan = () => {
-        console.log('Scan is stopped');
+        //console.log('Scan is stopped');
         setBleState('selectPeripheral');
     }
 
     const handleDiscoverPeripheral = (peripheral) => {
-        console.log('Got ble peripheral', peripheral);
+        //console.log('Got ble peripheral', peripheral);
         peripheral.connected = false;
         changePeripherals({"action": "add", "peripheral": peripheral});
     }
@@ -175,31 +181,31 @@ export default function App() {
           ],
           { cancelable: false }
         );
-        console.log('Disconnected from ' + data.peripheral);
+        //console.log('Disconnected from ' + data.peripheral);
       }
 
     function handleConnectPeripheral() {
-      console.log("handle connect to", peripheral);
+      //console.log("handle connect to", peripheral);
       BleManager.connect(peripheral.id).then(() => {
         setBleState("connected");
         changeCode({"type": "connect", "peripheral_id": peripheral.id});
         setTimeout(() => {
 
           BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
-            console.log(peripheralInfo);
+            //console.log(peripheralInfo);
 
             setTimeout(() => {
               BleManager.startNotification(peripheral.id, service, contentsCharacteristic).then(() => {
-                console.log('Started notification on ' + peripheral.id);
+                //console.log('Started notification on ' + peripheral.id);
                 setTimeout(() => {
                   BleManager.write(peripheral.id, service, filenameCharacteristic, stringToBytes("/code.py")).then(() => {
-                    console.log('Wrote filename');
+                    //console.log('Wrote filename');
                     setFileState("nameSet");
                   });
 
                 }, 500);
               }).catch((error) => {
-                console.log('Notification error', error);
+                //console.log('Notification error', error);
               });
             }, 200);
           });
@@ -217,7 +223,7 @@ export default function App() {
           setTimeout(() => {
             BleManager.read(peripheral.id, service, lengthCharacteristic).then((readData) => {
               let length = readData[0] + (readData[1] << 8) + (readData[2] << 16) + (readData[3] << 24);
-              console.log('fileLength', readData, length);
+              //console.log('fileLength', readData, length);
               changeCode({"type": "clear"});
               setFileLength(length);
               setFileState("loading");
@@ -239,7 +245,7 @@ export default function App() {
     }, [fileState]);
 
     useEffect(() => {
-      console.log("loaded", code.code.length, fileLength);
+      //console.log("loaded", code.code.length, fileLength);
       if (fileState == "loading" && code.code.length == fileLength) {
         setFileState("loaded");
       }
@@ -252,32 +258,32 @@ export default function App() {
     }, [peripheral, bleState]);
 
     useEffect(() => {
-        console.log("new blestate", bleState);
+        //console.log("new blestate", bleState);
         if (bleState == "permOk") {
         } else if (bleState == "started") {
             changePeripherals({"action": "clear"});
             BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
               for (p of peripheralsArray) {
-                console.log(p);
+                //console.log(p);
                 p.connected = true;
                 BleManager.connect(p.id).then(() => {
                 BleManager.retrieveServices(p.id).then((peripheralInfo) => {
-                  console.log(peripheralInfo);
+                  //console.log(peripheralInfo);
                   p.advertising.serviceUUIDs = [peripheralInfo.services[2].uuid];
                   changePeripherals({"action": "add", "peripheral": p});
                 });
               });
               }
-              console.log('Connected peripherals: ' + peripheralsArray.length);
+              //console.log('Connected peripherals: ' + peripheralsArray.length);
             });
             changePeripherals({"action": "scan"});
         } else if (bleState == "disconnected") {
             // set a timeout and try to reconnect
         } else if (bleState == "selectPeripheral") {
-            console.log(peripherals, peripherals.values());
+            //console.log(peripherals, peripherals.values());
             if (peripherals.size == 1) {
                 let peripheral = [...peripherals][0][1];
-                console.log("selecting", peripheral);
+                //console.log("selecting", peripheral);
                 setPeripheral(peripheral);
             }
           }
@@ -289,7 +295,7 @@ export default function App() {
         const handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral );
         const handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic );
         const handlerUpdateState = bleManagerEmitter.addListener('BleManagerDidUpdateState', handleUpdateState);
-
+        
         if (Platform.OS === 'android' && Platform.Version >= 23) {
             setBleState("permCheck");
             PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
@@ -328,7 +334,29 @@ export default function App() {
         renderContainerView={() => (
         <View>
             <StatusSummary bleState={bleState} />
+            <Text></Text>
+            <TextInput
+              
+              style={{
+                color: dark ? 'white' : 'rgb(18,18,18)',
+                paddingLeft: 15,
+                paddingRight: 15,
+                paddingTop: 10,
+                paddingBottom: 10,
+                borderWidth: 1,
+                borderRadius: 30,         
+                borderColor: dark ? 'white' : 'rgb(18,18,18)'}}
+              
+              onChangeText={search => setSearch(search)}
+              underlineColorAndroid="black"
+              placeholder="Search through the code ..."
+              placeholderTextColor={scheme === 'dark' ? 'white' : 'rgb(18,18,18)'}
+              keyboardType="default"
+              clearButtonMode="while-editing"
+            />
+            <Text></Text>
             <CodeEditor 
+              searchBar={search}
               code={code.code} 
               changeCode={changeCode} 
               fileState={fileState} 

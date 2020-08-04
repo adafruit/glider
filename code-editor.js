@@ -76,10 +76,15 @@ const styles = StyleSheet.create({
     },
   });
 
-function Indent({amount, index, parent}) {
+function Indent(props) {
     let whitespace = "    ";
     var { colors } = useTheme();
-    return (<Code style={index % 2 == 0 ? {backgroundColor: colors.card} : {backgroundColor: colors.card}}>{whitespace}</Code>);
+    console.log("Our props highlight says ", props.highlight, " for line ", props.index);
+    if (props.highlight == "yes"){
+        return (<Code style={props.index % 2 == 0 ? {backgroundColor: "#ffb533"} : {backgroundColor: colors.card}}>{whitespace}</Code>);
+    }
+
+    return (<Code style={props.index % 2 == 0 ? {backgroundColor: colors.card} : {backgroundColor: colors.card}}>{whitespace}</Code>);
 }
 
 function renderKeyword(token, changeCode) {
@@ -94,7 +99,7 @@ function renderKeyword(token, changeCode) {
                             multiline={false}>{value}
                 </CodeInput>);
     }
-    console.log("keyword", token.keywordType);
+    //console.log("keyword", token.keywordType);
 }
 
 //
@@ -106,8 +111,11 @@ function renderToken(token, changeCode) {
         default:
             break;
     }
-    console.log("Token", token.type, token);
+    //console.log("Token", token.type, token);
 }
+
+
+
 
 function renderParseNode(node, changeCode) {
     const { colors } = useTheme();
@@ -118,10 +126,10 @@ function renderParseNode(node, changeCode) {
             }
             break;
         case ParseNodeType.Assignment:
-            return (<View style={{flex: 1, flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code> = </Code>{renderParseNode(node.rightExpression, changeCode)}</View>);
+            return (<View style={{flex: 1, flexDirection: 'row', alignItems: 'flex-end'}}>{renderParseNode(node.leftExpression, changeCode)}<Code> = </Code>{renderParseNode(node.rightExpression, changeCode)}</View>);
             break;
         case ParseNodeType.BinaryOperation:
-            return (<View style={{flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code> ?? </Code>{renderParseNode(node.rightExpression, changeCode)}</View>);
+            return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}>{renderParseNode(node.leftExpression, changeCode)}<Code> ?? </Code>{renderParseNode(node.rightExpression, changeCode)}</View>);
             break;
         case ParseNodeType.Call:{
             var a = [];
@@ -131,21 +139,19 @@ function renderParseNode(node, changeCode) {
                 }
                 a.push(<View key={a.length}>{renderParseNode(argument, changeCode)}</View>);
             }
-            return (<View style={{flex: 1, flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>(</Code>{a}<Code>)</Code></View>);
+            return (<View style={{flex: 1, flexDirection: 'row', alignItems: 'flex-end'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>(</Code>{a}<Code>)</Code></View>);
         }
 
             break;
-        case ParseNodeType.Constant: {
-            return (<View style={{flex: 0, flexDirection: 'row', alignItems: 'flex-end'}}>{renderToken(node.token, changeCode)}</View>); 
-        }
-            break;
+        case ParseNodeType.Constant:
+            return (<View style={{flex: 0, flexDirection: 'row', alignItems: 'flex-end'}}>{renderToken(node.token, changeCode)}</View>);
         case ParseNodeType.Function:
-            return (<View style={{flexDirection: 'row'}}><Code>def </Code>{renderParseNode(node.name, changeCode)}<Code>(</Code>{renderParseNode(node.parameters[0], changeCode)}<Code>):</Code></View>);
+            return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}><Code>def </Code>{renderParseNode(node.name, changeCode)}<Code>(</Code>{renderParseNode(node.parameters[0], changeCode)}<Code>):</Code></View>);
         case ParseNodeType.If:
-            return (<View style={{flexDirection: 'row'}}><Code>if </Code>{renderParseNode(node.testExpression, changeCode)}<Code>:</Code></View>);
+            return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}><Code>if </Code>{renderParseNode(node.testExpression, changeCode)}<Code>:</Code></View>);
         case ParseNodeType.Import:
             if (node.list.length == 1) {
-                return (<View style={{flex: 0, flexDirection: 'row'}}><Code>import </Code>{renderParseNode(node.list[0], changeCode)}</View>);
+                return (<View style={{flex: 0, flexDirection: 'row', alignItems: 'flex-end'}}><Code>import </Code>{renderParseNode(node.list[0], changeCode)}</View>);
             }
 
             break;
@@ -158,7 +164,7 @@ function renderParseNode(node, changeCode) {
 
                 break;
         case ParseNodeType.Index:
-                return (<View style={{flexDirection: 'row'}}>{renderParseNode(node.baseExpression, changeCode)}<Code>[</Code>{renderParseNode(node.items, changeCode)}<Code>]</Code></View>);
+                return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}>{renderParseNode(node.baseExpression, changeCode)}<Code>[</Code>{renderParseNode(node.items, changeCode)}<Code>]</Code></View>);
 
                 break;
         case ParseNodeType.IndexItems:
@@ -167,7 +173,7 @@ function renderParseNode(node, changeCode) {
             }
             break;
         case ParseNodeType.MemberAccess:
-                return (<View style={{flexDirection: 'row'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>.</Code>{renderParseNode(node.memberName, changeCode)}</View>);
+                return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>.</Code>{renderParseNode(node.memberName, changeCode)}</View>);
 
                 break;
         case ParseNodeType.Name: {
@@ -210,18 +216,18 @@ function renderParseNode(node, changeCode) {
             break;
         case ParseNodeType.While:
             console.log("while", node);
-            return (<View style={{flexDirection: 'row'}}><Code>while </Code>{renderParseNode(node.testExpression, changeCode)}<Code>:</Code></View>);
+            return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}><Code>while </Code>{renderParseNode(node.testExpression, changeCode)}<Code>:</Code></View>);
             break;
         default:
             break;
     }
-            console.log("unsupported", node.nodeType, node);
+            //console.log("unsupported", node.nodeType, node);
 }
 
 
 function CodeLine(props) {
     let parseNode = props.line.node;
-    console.log(props.line);
+
     let code;
     if (parseNode == "empty") {
         code = (<CodeInput placeholder=""
@@ -233,20 +239,28 @@ function CodeLine(props) {
         code = renderParseNode(parseNode, props.changeCode);
     }
     let space = " ";
-    let indents = props.line.indents.flatMap((value, index) => (<Indent amount={value[0]} index={index} key={index} parent={value[1]}/>));
-    return (<View style={{flex: 1, flexDirection: 'row'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
-};
+
+    if (props.highlight == "yes") {  
+        let indents = props.line.indents.flatMap((value, index) => (<Indent highlight="yes" amount={value[0]} index={index} key={index} parent={value[1]}/>));      
+        return (<View style={{flex: 1, flexDirection: 'row',backgroundColor: "#ffb533", alignItems: 'flex-end'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
+    }
+    let indents = props.line.indents.flatMap((value, index) => (<Indent highlight="no" amount={value[0]} index={index} key={index} parent={value[1]}/>));
+    return (<View style={{flex: 1, flexDirection: 'row', alignItems: 'flex-end'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
+
+    };
 
 
 export default function CodeEditor(props) {
     const [lines, setLines] = useState([]);
     const [unparsable, setUnparsable] = useState(false);
-
+    useEffect(() => {
+        //console.log("SEARCH HAS BEEN CHANGED! -------------------",props.searchBar);
+  }, [props.searchBar]);
     function analysisComplete(results) {
         if (!results) {
             return;
         }
-        console.log(results);
+        //console.log(results);
         if (results.fatalErrorOccurred) {
             setUnparsable(true);
             return;
@@ -284,7 +298,7 @@ export default function CodeEditor(props) {
                 let newIndent = statements[0].start - line.start;
                 if (scope == "pushscope") {
                     // Include the last parse node so the empty space know what it belongs to
-                    console.log(lines, lines.length);
+                    //console.log(lines, lines.length);
                     indents.push([newIndent - indent, lines[lines.length - 1][1]]);
                 } else {
                     indents.pop();
@@ -294,7 +308,7 @@ export default function CodeEditor(props) {
             }
             let parseNode = statements.shift();
             if (!parseNode) {
-                console.log(line, parseNode);
+                //console.log(line, parseNode);
             } else if (parseNode &&
                        parseNode.start == line.start + indent &&
                        (parseNode.length == line.length - 1 - indent ||
@@ -312,18 +326,20 @@ export default function CodeEditor(props) {
                     lines.push({indents: Array.from(indents), node: parseNode, id: parseNode.start.toString()});
                     statements.unshift("pushscope", ...parseNode.suite.statements, "popscope");
                 } else {
-                    console.log("unhandled node", parseNode, line, indent);
+                    //console.log("unhandled node", parseNode, line, indent);
                 }
             }
         }
-        console.log(statements);
-        console.log(lines);
+        //console.log(statements);
+        //console.log(lines);
         setLines(lines);
     };
     useEffect(() => {
         analyzer.setCompletionCallback(analysisComplete);
 
-        console.log("file updated", props.fileName, props.fileVersion, props.code);
+        //console.log("file updated", props.fileName, props.fileVersion, props.code);
+        //console.log("LETS PRINT PROPS.CODE AGAIN ----------------");
+        //(typeof props.code);
         if (firstAnalyzerRun) {
             analyzer.setFileOpened(props.fileName, props.fileVersion, props.code);
             firstAnalyzerRun = false;
@@ -331,6 +347,22 @@ export default function CodeEditor(props) {
             analyzer.updateOpenFileContents(props.fileName, props.fileVersion, props.code);
         }
     }, [props.fileName, props.fileVersion, props.code]);
+
+    const renderFlatlist = ({item, index}) => {
+    //takes string props.code
+    //separates it by line
+
+    var flatLines = props.code;
+    console.log("Value of index is", index);
+    const newFlat = flatLines.split("\n");
+    // looks through each line for characters
+    //return emptiness or return component
+    if (!(newFlat[index].toLowerCase().includes(props.searchBar.toLowerCase())) || props.searchBar == ""){
+        return(<CodeLine highlight="no" index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>)
+    }
+
+    return (<CodeLine highlight="yes" index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>)
+    }
 
     let editor;
     if (props.fileState == "loading") {
@@ -340,9 +372,10 @@ export default function CodeEditor(props) {
         if (unparsable) {
             editor = <CodeInput multiline={true} offset={0} style={{color: colors.text}}>{props.code}</CodeInput>;
         } else {
+
             editor = (<FlatList
                                 data={lines}
-                                renderItem={({item, index}) => <CodeLine index={index} maxIndex={lines.length} line={item} changeCode={props.changeCode}/>}
+                                renderItem={renderFlatlist}
                             />);
         }
     }
