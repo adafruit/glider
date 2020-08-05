@@ -69,8 +69,8 @@ function codeReducer(state, action) {
   } else if (action.type == "read") {
       newState.code += action.data;
   } else if (action.type == "patch") {
-    console.log("TODO send data back to CP");
-    console.log(state, action);
+    //console.log("TODO send data back to CP");
+    //console.log(state, action);
     let encoder = new encoding.TextEncoder();
     let encodedInsert = encoder.encode(action.newValue);
     let totalLength = 2 + 2 + 4 + 4 + 4 + encodedInsert.length
@@ -87,12 +87,19 @@ function codeReducer(state, action) {
     // React native bridging can't handle Uint8Array so copy into a normal array.
     let finalPatch = Array.from(new Uint8Array(patch));
     if (state.peripheral_id) {
-      //("writing patch", finalPatch, patch);
-      BleManager.write(state.peripheral_id, service, contentsCharacteristic, finalPatch).then(() => {
-        //console.log('Wrote patch to device');
+      console.log("writing patch", finalPatch, patch);
+      BleManager.write(
+        state.peripheral_id, 
+        service, 
+        contentsCharacteristic, 
+        finalPatch
+      ).then(() => {
+        console.log('Wrote patch to device');
+      }).catch((error) => {
+        console.log("ERROR patching: ", error);
       });
     } else {
-      //console.log("no peripheral", newState.queue);
+      console.log("no peripheral", newState.queue);
       newState.queue.push(patch);
     }
 
