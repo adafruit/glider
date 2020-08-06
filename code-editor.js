@@ -70,7 +70,7 @@ function Indent(props) {
         return (<Code style={props.index % 2 == 0 ? {backgroundColor: "#ffb533"} : {backgroundColor: colors.card}}>{whitespace}</Code>);
     }
 
-    return (<Code style={props.index % 2 == 0 ? {backgroundColor: colors.card} : {backgroundColor: colors.card}}>{whitespace}</Code>);
+    return (<Code style={props.index % 2 == 0 ? {backgroundColor: colors.background} : {backgroundColor: colors.background}}>{whitespace}</Code>);
 }
 
 function renderKeyword(token, changeCode, offset) {
@@ -212,6 +212,8 @@ function renderParseNode(node, changeCode) {
 
 
 function CodeLine(props) {
+    const {colors} = useTheme();
+
     let parseNode = props.line.node;
 
     let code;
@@ -229,16 +231,18 @@ function CodeLine(props) {
 
     if (props.highlight == "yes") {  
         let indents = props.line.indents.flatMap((value, index) => (<Indent highlight="yes" amount={value[0]} index={index} key={index} parent={value[1]}/>));      
-        return (<View style={{flex: 1, flexDirection: 'row',backgroundColor: "#ffb533", alignItems: 'flex-end'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
+        return (<View style={{flex: 1, flexDirection: 'row', backgroundColor: "#ffb533", alignItems: 'flex-end'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
     }
     let indents = props.line.indents.flatMap((value, index) => (<Indent highlight="no" amount={value[0]} index={index} key={index} parent={value[1]}/>));
-    return (<View style={{flex: 1, flexDirection: 'row', alignItems: 'flex-end'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
+    return (<View style={{flex: 1, flexDirection: 'row', backgroundColor: colors.background, alignItems: 'flex-end'}}><Code>{props.index+1 + space.repeat((props.maxIndex.toString().length-(props.index+1).toString().length)+1)}</Code>{indents}{code}</View>);
 
     };
 
 
 export default function CodeEditor(props) {
     const { colors } = useTheme();
+    console.log(colors)
+
     const [lines, setLines] = useState([]);
     const [unparsable, setUnparsable] = useState(false);
     
