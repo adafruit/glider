@@ -47,17 +47,17 @@ function CodeInput(props) {
             clearTimeout(changeTimeout);
             setChangeTimeout(0);
         }
+       
         if (oldValue != newValue) {
             console.log("done");
+
             if (newValue.length > 0) {
                 patch(props.offset, oldValue, newValue);
             }
         }
     }
     function changeValue() {
-        var lookAtValue = newValue;
-        newValue = lookAtValue == "True" ? setNewValue("False") : setNewValue("True");
-            
+        newValue = newValue == "True" ? onChange("False") : onChange("True");     
     }
     
     if ( props.keyword == "yes" ) {
