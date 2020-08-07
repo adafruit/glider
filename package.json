@@ -25,6 +25,7 @@
     "react-native-elements": "^2.0.4",
     "react-native-gesture-handler": "^1.6.1",
     "react-native-hooks": "^0.9.0",
+    "react-native-local-resource": "^0.1.6",
     "react-native-reanimated": "^1.9.0",
     "react-native-safe-area-context": "^3.0.7",
     "react-native-screens": "^2.9.0",
