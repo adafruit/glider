@@ -696,7 +696,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.lincolnroth.Glider;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.GliderOne-";
 				PRODUCT_NAME = Glider;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -717,7 +717,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.lincolnroth.Glider;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.GliderOne-";
 				PRODUCT_NAME = Glider;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
