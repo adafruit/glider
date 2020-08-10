@@ -112,11 +112,13 @@ function codeReducer(state, action) {
 }
 
 export default function App() {
-    const scheme = useColorScheme();
-    var dark = false;
-    if (scheme == 'dark'){
-      dark = true;
+    //check if color scheme is set to dark
+    const scheme = useColorScheme()
+    const [dark, setDark] = useState(false);
+    if (scheme == 'dark') {
+      setDark(true);
     }
+
     const currentAppState = useAppState();
     const [bleState, setBleState] = useState("stopped");
     const [peripherals, changePeripherals] = useReducer(peripheralReducer, new Map());
@@ -333,10 +335,10 @@ export default function App() {
 
     return (
       <AppearanceProvider><NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <SafeAreaView style={{flex:1, backgroundColor: scheme === 'light' ? 'white' : 'rgb(18,18,18)'}}>
+      <SafeAreaView style={{flex:1, backgroundColor: scheme === 'dark' ? 'rgb(18,18,18)' : 'white'}}>
       <DraggableView
         isInverseDirection={true}
-        bgColor={scheme === 'light' ? 'white' : 'rgb(18,18,18)'}
+        bgColor={scheme === 'dark' ? 'rgb(18,18,18)' : 'white'}
         initialDrawerSize={17}
         renderContainerView={() => (
         <View>
@@ -380,5 +382,3 @@ export default function App() {
     );
 
 }
-       
-
