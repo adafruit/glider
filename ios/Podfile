@@ -36,6 +36,8 @@ target 'Glider' do
 
   pod 'react-native-ble-manager', :path => '../node_modules/react-native-ble-manager'
 
+  pod 'RNFS', :path => '../node_modules/react-native-fs'
+
   target 'GliderTests' do
     inherit! :search_paths
     # Pods for testing

@@ -89,9 +89,9 @@ function codeReducer(state, action) {
     if (state.peripheral_id) {
       console.log("writing patch", finalPatch, patch);
       BleManager.write(
-        state.peripheral_id, 
-        service, 
-        contentsCharacteristic, 
+        state.peripheral_id,
+        service,
+        contentsCharacteristic,
         finalPatch
       ).then(() => {
         console.log('Wrote patch to device');
@@ -179,7 +179,7 @@ export default function App() {
         //   this.setState({peripherals});
         // }
         setBleState("disconnected");
-        
+
         Alert.alert(
           "Device Disconnected",
           "You have lost connection with your device",
@@ -304,7 +304,7 @@ export default function App() {
         const handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral );
         const handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic );
         const handlerUpdateState = bleManagerEmitter.addListener('BleManagerDidUpdateState', handleUpdateState);
-        
+
         if (Platform.OS === 'android' && Platform.Version >= 23) {
             setBleState("permCheck");
             PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
@@ -345,7 +345,7 @@ export default function App() {
             <StatusSummary bleState={bleState} />
             <Text></Text>
             <TextInput
-              
+
               style={{
                 color: dark ? 'white' : 'rgb(18,18,18)',
                 paddingLeft: 15,
@@ -353,9 +353,9 @@ export default function App() {
                 paddingTop: 10,
                 paddingBottom: 10,
                 borderWidth: 1,
-                borderRadius: 30,         
+                borderRadius: 30,
                 borderColor: dark ? 'white' : 'rgb(18,18,18)'}}
-              
+
               onChangeText={search => setSearch(search)}
               underlineColorAndroid="black"
               placeholder="Search through the code ..."
@@ -364,18 +364,18 @@ export default function App() {
               clearButtonMode="while-editing"
             />
             <Text></Text>
-            <CodeEditor 
+            <CodeEditor
               searchBar={search}
-              code={code.code} 
-              changeCode={changeCode} 
-              fileState={fileState} 
-              fileName="/code.py" 
+              code={code.code}
+              changeCode={changeCode}
+              fileState={fileState}
+              fileName="/code.py"
               fileVersion={code.version}
-            /> 
+            />
         </View>)}
         renderDrawerView={() => (<Status bleState={bleState} peripherals={peripherals} setPeripheral={setPeripheral} />)}
         renderInitDrawerView={() => (<StatusSummary bleState={bleState}/>)}
-        
+
       />
       </SafeAreaView>
       </NavigationContainer></AppearanceProvider>
