@@ -241,7 +241,6 @@ function CodeLine(props) {
 
 export default function CodeEditor(props) {
     const { colors } = useTheme();
-    console.log(colors)
 
     const [lines, setLines] = useState([]);
     const [unparsable, setUnparsable] = useState(false);
