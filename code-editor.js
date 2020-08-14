@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import {Button} from 'react-native-elements';
 import {ActivityIndicator, FlatList, Platform, TextInput, KeyboardAvoidingView, Text, View, StyleSheet} from 'react-native';
 import {AnalyzerService} from './pyright/server/src/analyzer/service';
 import {ArgumentCategory, ParseNodeType} from './pyright/server/src/parser/parseNodes';
@@ -46,19 +47,40 @@ function CodeInput(props) {
             clearTimeout(changeTimeout);
             setChangeTimeout(0);
         }
+       
         if (oldValue != newValue) {
             console.log("done");
+
             if (newValue.length > 0) {
                 patch(props.offset, oldValue, newValue);
             }
         }
     }
+    function changeValue() {
+        newValue = newValue == "True" ? onChange("False") : onChange("True");     
+    }
+    
+    if ( props.keyword == "yes" ) {
+    
+        return (
+        
+            <Button onPress={changeValue} 
+                title={newValue}
+                type="clear"
+                titleStyle={[props.style, {fontFamily: font}, debugStyle]}
+                buttonStyle={{padding: 0}}
+            />
+       
+        )
+    }
+
     return (<TextInput {...props} style={[props.style, {fontFamily: font, paddingVertical: 0, textAlignVertical: 'top'}, debugStyle]} onChangeText={onChange} onEndEditing={onDone}>{newValue}</TextInput>);
 }
 
 const styles = StyleSheet.create({
     keyword: {
-      color: 'blue',
+      color: '#145C9E',
+      fontSize: 15,
     },
   });
 
@@ -76,7 +98,8 @@ function Indent(props) {
 function renderKeyword(token, changeCode, offset) {
     if (token.keywordType == KeywordType.True || token.keywordType == KeywordType.False) {
         let value = token.keywordType == KeywordType.True ? "True" : "False";
-        return (<CodeInput placeholder="bool"
+        return (<CodeInput  placeholder="bool"
+                            keyword="yes"
                             style={styles.keyword}
                             editable={true}
                             multiline={false}
@@ -155,7 +178,7 @@ function renderParseNode(node, changeCode) {
             if (node.items.length == 1) {
                 return renderParseNode(node.items[0], changeCode);
             }
-            sbreak;
+            break;
         case ParseNodeType.MemberAccess:
                 return (<View style={{flexDirection: 'row', alignItems: 'flex-end'}}>{renderParseNode(node.leftExpression, changeCode)}<Code>.</Code>{renderParseNode(node.memberName, changeCode)}</View>);
 
