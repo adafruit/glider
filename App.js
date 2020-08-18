@@ -10,6 +10,7 @@ import Status, { StatusSummary} from './status';
 import { useAppState } from 'react-native-hooks'
 import { stringToBytes, bytesToString } from 'convert-string';
 import * as encoding from 'text-encoding';
+import RNColorPalette from '@iomechs/rn-color-palette';
 import {
     NativeEventEmitter,
     NativeModules,
@@ -20,6 +21,7 @@ import {
 } from 'react-native';
 
 import BleManager from 'react-native-ble-manager';
+import { ScrollView } from 'react-native-gesture-handler';
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
@@ -119,6 +121,11 @@ export default function App() {
       setDark(true);
     }
 
+    //initialize variables and functions for color palette feature
+    const [pickedColor, colorPicked] = useState('green');
+    const [colors, addColor] = useState(['green']);
+
+    //initalize constants and states for app
     const currentAppState = useAppState();
     const [bleState, setBleState] = useState("stopped");
     const [peripherals, changePeripherals] = useReducer(peripheralReducer, new Map());
@@ -342,6 +349,7 @@ export default function App() {
         initialDrawerSize={17}
         renderContainerView={() => (
         <View>
+          <ScrollView>
             <StatusSummary bleState={bleState} />
             <Text></Text>
             <TextInput
@@ -364,6 +372,22 @@ export default function App() {
               clearButtonMode="while-editing"
             />
             <Text></Text>
+            <RNColorPalette
+              colorList={colors}
+              value={pickedColor}
+              onItemSelect={colorPicked}
+              AddPickedColor={colour => addColor([...colors, colour])}
+              style={{
+                flexDirection: 'row',
+                backgroundColor: pickedColor,
+                width: 100,
+                height: 30,
+              }}>
+              <View>
+                <Text>Palette</Text>
+              </View>
+            </RNColorPalette>
+            <ScrollView horizontal={true}>
             <CodeEditor 
               searchBar={search}
               code={code.code} 
@@ -372,6 +396,8 @@ export default function App() {
               fileName="/code.py" 
               fileVersion={code.version}
             /> 
+            </ScrollView>
+            </ScrollView>
         </View>)}
         renderDrawerView={() => (<Status bleState={bleState} peripherals={peripherals} setPeripheral={setPeripheral} />)}
         renderInitDrawerView={() => (<StatusSummary bleState={bleState}/>)}
