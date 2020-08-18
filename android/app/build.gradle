@@ -188,6 +188,8 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-fs')
+    implementation project(':react-native-local-resource')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
