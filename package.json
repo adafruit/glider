@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@iomechs/rn-color-palette": "0.0.4",
+    "@react-native-community/clipboard": "^1.2.3",
     "@react-native-community/masked-view": "^0.1.10",
     "@react-navigation/native": "^5.6.1",
     "@types/jest": "^24.0.18",

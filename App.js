@@ -11,12 +11,14 @@ import { useAppState } from 'react-native-hooks'
 import { stringToBytes, bytesToString } from 'convert-string';
 import * as encoding from 'text-encoding';
 import RNColorPalette from '@iomechs/rn-color-palette';
+import Clipboard from "@react-native-community/clipboard";
 import {
     NativeEventEmitter,
     NativeModules,
     PermissionsAndroid,
     Platform,
     View,
+    TouchableOpacity,
     SafeAreaView
 } from 'react-native';
 
@@ -121,9 +123,18 @@ export default function App() {
       setDark(true);
     }
 
-    //initialize variables and functions for color palette feature
-    const [pickedColor, colorPicked] = useState('green');
-    const [colors, addColor] = useState(['green']);
+    //initialize variables and functions for color palette and clipboard feature
+    const [pickedColor, colorPicked] = useState('#ff0000');
+    const [colors, addColor] = useState(['#ff0000']);
+
+    const copyToClipboard = (pickedColor) => {
+      let originalColor = pickedColor;
+      let prefix = '0x'
+      let newColor = originalColor.substring(1)
+      let newHexColor = prefix.concat(newColor)
+      console.log(newHexColor)
+      Clipboard.setString(newHexColor)
+    }
 
     //initalize constants and states for app
     const currentAppState = useAppState();
@@ -358,10 +369,10 @@ export default function App() {
                 color: dark ? 'white' : 'rgb(18,18,18)',
                 paddingLeft: 15,
                 paddingRight: 15,
-                paddingTop: 10,
-                paddingBottom: 10,
+                paddingTop: 3,
+                paddingBottom: 2,
                 borderWidth: 1,
-                borderRadius: 30,         
+                borderRadius: 30,
                 borderColor: dark ? 'white' : 'rgb(18,18,18)'}}
               
               onChangeText={search => setSearch(search)}
@@ -372,21 +383,47 @@ export default function App() {
               clearButtonMode="while-editing"
             />
             <Text></Text>
-            <RNColorPalette
-              colorList={colors}
-              value={pickedColor}
-              onItemSelect={colorPicked}
-              AddPickedColor={colour => addColor([...colors, colour])}
-              style={{
+
+            <View style={{
                 flexDirection: 'row',
-                backgroundColor: pickedColor,
-                width: 100,
-                height: 30,
+                paddingTop: 2,
+                paddingBottom: 3,
               }}>
-              <View>
-                <Text>Palette</Text>
-              </View>
-            </RNColorPalette>
+              <RNColorPalette
+                colorList={colors}
+                value={pickedColor}
+                onItemSelect={colorPicked}
+                AddPickedColor={colour => addColor([...colors, colour])}
+                style={{
+                  backgroundColor: pickedColor,
+                  paddingLeft: 10,
+                  paddingRight: 5,
+                  paddingTop: 2,
+                  paddingBottom: 2,
+                  borderWidth: 1,
+                  borderRadius: 5,
+                  width: 140,
+                  height: 30,
+                }}>
+                <View>
+                  <Text>Color Picker</Text>
+                </View>
+              </RNColorPalette>
+              <TouchableOpacity onPress={copyToClipboard(pickedColor)} style={{
+                  backgroundColor: pickedColor,
+                  paddingLeft: 10,
+                  paddingRight: 5,
+                  paddingTop: 2,
+                  paddingBottom: 2,
+                  borderWidth: 1,
+                  borderRadius: 5,
+                  width: 140,
+                  height: 30,
+                }}>
+                <Text>Copy to Clipboard</Text>
+              </TouchableOpacity>
+            </View>
+
             <ScrollView horizontal={true}>
             <CodeEditor 
               searchBar={search}
