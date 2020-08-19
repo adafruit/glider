@@ -11,16 +11,19 @@ import { useAppState } from 'react-native-hooks'
 import { stringToBytes, bytesToString } from 'convert-string';
 import * as encoding from 'text-encoding';
 import RNColorPalette from '@iomechs/rn-color-palette';
+import Clipboard from "@react-native-community/clipboard";
 import {
     NativeEventEmitter,
     NativeModules,
     PermissionsAndroid,
     Platform,
     View,
+    TouchableOpacity,
     SafeAreaView
 } from 'react-native';
 
 import BleManager from 'react-native-ble-manager';
+import { ScrollView } from 'react-native-gesture-handler';
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
@@ -120,9 +123,18 @@ export default function App() {
       setDark(true);
     }
 
-    //initialize variables and functions for color palette feature
-    const [pickedColor, colorPicked] = useState('green');
-    const [colors, addColor] = useState(['green']);
+    //initialize variables and functions for color palette and clipboard feature
+    const [pickedColor, colorPicked] = useState('#ff0000');
+    const [colors, addColor] = useState(['#ff0000']);
+
+    const copyToClipboard = (pickedColor) => {
+      let originalColor = pickedColor;
+      let prefix = '0x'
+      let newColor = originalColor.substring(1)
+      let newHexColor = prefix.concat(newColor)
+      console.log(newHexColor)
+      Clipboard.setString(newHexColor)
+    }
 
     //initalize constants and states for app
     const currentAppState = useAppState();
@@ -348,6 +360,7 @@ export default function App() {
         initialDrawerSize={17}
         renderContainerView={() => (
         <View>
+          <ScrollView>
             <StatusSummary bleState={bleState} />
             <Text></Text>
             <TextInput
@@ -356,8 +369,8 @@ export default function App() {
                 color: dark ? 'white' : 'rgb(18,18,18)',
                 paddingLeft: 15,
                 paddingRight: 15,
-                paddingTop: 10,
-                paddingBottom: 10,
+                paddingTop: 3,
+                paddingBottom: 2,
                 borderWidth: 1,
                 borderRadius: 30,
                 borderColor: dark ? 'white' : 'rgb(18,18,18)'}}
@@ -370,7 +383,49 @@ export default function App() {
               clearButtonMode="while-editing"
             />
             <Text></Text>
-            <CodeEditor
+
+            <View style={{
+                flexDirection: 'row',
+                paddingTop: 2,
+                paddingBottom: 3,
+              }}>
+              <RNColorPalette
+                colorList={colors}
+                value={pickedColor}
+                onItemSelect={colorPicked}
+                AddPickedColor={colour => addColor([...colors, colour])}
+                style={{
+                  backgroundColor: pickedColor,
+                  paddingLeft: 10,
+                  paddingRight: 5,
+                  paddingTop: 2,
+                  paddingBottom: 2,
+                  borderWidth: 1,
+                  borderRadius: 5,
+                  width: 140,
+                  height: 30,
+                }}>
+                <View>
+                  <Text>Color Picker</Text>
+                </View>
+              </RNColorPalette>
+              <TouchableOpacity onPress={copyToClipboard(pickedColor)} style={{
+                  backgroundColor: pickedColor,
+                  paddingLeft: 10,
+                  paddingRight: 5,
+                  paddingTop: 2,
+                  paddingBottom: 2,
+                  borderWidth: 1,
+                  borderRadius: 5,
+                  width: 140,
+                  height: 30,
+                }}>
+                <Text>Copy to Clipboard</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView horizontal={true}>
+            <CodeEditor 
               searchBar={search}
               code={code.code}
               changeCode={changeCode}
@@ -378,20 +433,8 @@ export default function App() {
               fileName="/code.py"
               fileVersion={code.version}
             /> 
-            <RNColorPalette
-              colorList={colors}
-              value={pickedColor}
-              onItemSelect={colorPicked}
-              AddPickedColor={colour => addColor([...colors, colour])}
-              style={{
-                backgroundColor: pickedColor,
-                width: 100,
-                height: 30,
-              }}>
-              <View>
-                <Text>Color Picker</Text>
-              </View>
-            </RNColorPalette>
+            </ScrollView>
+            </ScrollView>
         </View>)}
         renderDrawerView={() => (<Status bleState={bleState} peripherals={peripherals} setPeripheral={setPeripheral} />)}
         renderInitDrawerView={() => (<StatusSummary bleState={bleState}/>)}
