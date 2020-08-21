@@ -18,6 +18,11 @@ In the glider folder, run:
 npm install
 ```
 
+**NOTE:** Android requires manual installation/ linking of the libraries: 
+ - [react-native-fs](https://www.npmjs.com/package/react-native-fs#usage-android)
+ - [react-native-local-resource](https://www.npmjs.com/package/react-native-local-resource)
+
+
 ### iOS
 From the /ios folder, run:
 ```
